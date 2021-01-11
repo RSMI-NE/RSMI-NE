@@ -19,7 +19,6 @@ import os
 import sys
 import numpy as np 
 import pandas as pd
-import matplotlib.pyplot as plt
 import time
 #from tqdm import tqdm
 from tqdm.notebook import tqdm
