@@ -11,7 +11,7 @@
 
 ## Overview
 
-`RSMI-NE`  makes use of state-of-the-art results for estimating mutual information by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), arXiv:1905.06922v1].
+`RSMI-NE`  makes use of the state-of-the-art results for estimating mutual information by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), arXiv:1905.06922v1].
 
 ## System requirements
 
