@@ -41,7 +41,7 @@ This package has been tested on the following systems with Python 3.8.5:
 
 ## Installation
 
-Install from Github into a virtual environment:
+Clone `RSMI-NE` from Github and install its dependencies into a virtual environment:
 
 ```bash
 git clone https://github.com/RSMI-NE/RSMI-NE
