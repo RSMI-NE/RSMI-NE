@@ -28,8 +28,6 @@ This project includes estimators for MI based on optimisation of variational bou
 
 # Third Party Libraries/Modules/Packages
 
-## Python
-
 ## critic.py module
 
 Authors: Ben Poole, Sherjil Ozair, Aäron van den Oord, Alexander A. Alemi, George Tucker

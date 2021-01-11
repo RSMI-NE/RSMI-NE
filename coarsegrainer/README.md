@@ -1,15 +1,19 @@
 This implement optimisation of RSMI based on training neural networks expressing its variational lower-bounds.
 
-# Project structure
+## Repository structure
 
 *  /
     *  README.md
 *  data/
 *  input/
 *  src/
-*  tests/
+*  examples/
 
-# Dependencies
+## Getting started
+
+Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/tree/main/coarsegrainer/examples>.
+
+## Dependencies
 
 * Python
   * Version: 3.7.5

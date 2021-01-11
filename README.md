@@ -49,6 +49,10 @@ cd RSMI-NE
 ./install/install.sh
 ```
 
+## Getting started
+
+Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/tree/main/coarsegrainer/examples>.
+
 ## License
 
 This project is covered under the **Apache 2.0 License**.
