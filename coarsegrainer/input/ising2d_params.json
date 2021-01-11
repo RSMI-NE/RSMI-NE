@@ -1,0 +1,46 @@
+{
+    "data_params": {
+        "J": 0.44,
+        "T": 1.850,
+        "dimension": 2,
+        "N_samples": 20000,
+        "model": "ising2d",
+        "lattice_type": "square",
+        "Nq": 2,
+        "L": 48,
+        "srn_correlation": true,
+        "height_field": false,
+        "verbose": true
+    },
+
+    "cg_params": {
+        "num_hiddens": 1,
+        "ll": [
+            5,
+            5
+        ],
+        "conv_activation": "sigmoid",
+        "h_embed": true,
+        "relaxation_rate": 0.001,
+        "min_temperature": 0.05,
+        "init_temperature": 2.0
+    },
+
+    "critic_params": {
+        "layers": 1,
+        "embed_dim": 8,
+        "hidden_dim": 14,
+        "activation": "relu"
+    },
+
+    "opt_params": {
+        "batch_size": 250,
+        "iterations": 50,
+        "shuffle": 100,
+        "learning_rate": 5e-3
+    },
+
+    "estimators": {
+        "InfoNCE": {"estimator": "infonce", "critic": "separable", "baseline": "constant"}
+    }
+}
