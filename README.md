@@ -15,7 +15,7 @@
 
 ## System requirements
 
-### Hardware requirements
+### Hardware requirements
 
 `RSMI-NE`  can be run on a standard personal computer. It has been tested on the following setup (without GPU):
 
