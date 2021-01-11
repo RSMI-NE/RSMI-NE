@@ -25,7 +25,7 @@ def infonce_lower_bound(x, y, f_ansatz):
   for estimating I(X:Y).
 
   Keyword arguments:
-  x -- full sample dataset for random variable Y
+  x -- full sample dataset for random variable X
   y -- full sample dataset for random variable Y
   f_ansatz (str) -- type of ansatz function
   """
