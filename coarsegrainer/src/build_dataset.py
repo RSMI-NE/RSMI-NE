@@ -158,13 +158,7 @@ class dataset():
                 if self.verbose:
                         print("Existing data found.\n Loading the data...")
 
-                if self.model == 'dimer2d':
-                    x = loadNSplit_DimerandVBS(filename(**self.system_params, fileformat='mat', basedir=basedir),
-                        0, self.L//2, corr_diag_spins=self.srn_correlation)[1]
-                    self.N_configs = len(x)
-                    self.configurations = np.reshape(x, (self.N_configs, self.L*self.L))
-
-                elif self.model == 'intdimer2d':
+                if self.model == 'intdimer2d':
                     x = np.load(filename(**self.system_params, T=self.T,
                                         fileformat='npy', basedir=basedir))
                     self.N_configs = len(x)
