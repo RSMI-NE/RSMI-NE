@@ -14,9 +14,9 @@ import sys
 from tqdm.notebook import tqdm
 #from tqdm import tqdm
 import numpy as np
-#import pandas as pd
+import pandas as pd
 import tensorflow as tf
-from cg_utils import array2tensor #, loadNSplit_DimerandVBS
+from cg_utils import loadNSplit_DimerandVBS, array2tensor
 
 def filename(model, lattice, L, J=None, T=None, srn_correlation=None, fileformat='txt', basedir='data', prefix='configs'):
     """Generates filename (str) according to naming scheme from specified model parameters.
@@ -209,36 +209,3 @@ class dataset():
             print('RSMI dataset prepared.')
 
         return array2tensor(Vs), array2tensor(Es)
-
-    def chop_data(self, stride, ll, buffer_size, cap=None, shape=None):
-        """Chops real-space configurations according to some stride 
-        to generate many from a given dataset (V,E) samples.
-        Note: Using this might be dangerous in the absence of 
-        translation invariance.
-
-        Keyword arguments:
-        stride = int
-        ll (tuple of int) -- shape of V
-        buffer_size (int) -- buffer width (default 2)
-        cap (int) -- subsystem size<L to cap the environment 
-            (default None: environment is the rest of the system)
-        shape (tuple of int) -- shape of the configurations
-            (default None: assumes square system, i.e. shape=(L,L))
-        """
-
-        dim = len(ll)
-        env_shell = (cap - ll[0] - 2*buffer_size)//2
-
-        index = np.array([env_shell+1 for _ in range(dim)])
-        Vs, Es = self.rsmi_data(index, ll,
-                        buffer_size=buffer_size, cap=cap, shape=shape)
-        for d in range(dim):
-            for _ in range((self.L-2*env_shell)//stride):
-                index[d] += stride
-                Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
-                        buffer_size=buffer_size, cap=cap, shape=shape)
-
-                tf.stack([Vs, Vs_], 0)
-                tf.stack([Es, Es_], 0)
-
-        return Vs, Es
