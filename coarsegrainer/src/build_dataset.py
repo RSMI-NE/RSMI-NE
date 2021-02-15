@@ -236,11 +236,13 @@ class dataset():
                         buffer_size=buffer_size, cap=cap, shape=shape)
 
         lin_size = self.L-2*env_shell
-        for index in itertools.product(*[range(0,lin_size,stride) for _ in range(dim)]):
-            Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
-                    buffer_size=buffer_size, cap=cap, shape=shape)
 
-            Vs = tf.concat([Vs, Vs_], 0)
-            Es = tf.concat([Es, Es_], 0)
+        for i, index in enumerate(itertools.product(*[range(0, lin_size, stride) for _ in range(dim)])):
+            if i > 0:
+                Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
+                        buffer_size=buffer_size, cap=cap, shape=shape)
+
+                Vs = tf.concat([Vs, Vs_], 0)
+                Es = tf.concat([Es, Es_], 0)
 
         return Vs, Es
