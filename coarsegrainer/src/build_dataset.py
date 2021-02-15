@@ -12,6 +12,7 @@ Date: 10/01/2021
 import os
 import sys
 from tqdm.notebook import tqdm
+import itertools
 #from tqdm import tqdm
 import numpy as np
 #import pandas as pd
@@ -203,7 +204,8 @@ class dataset():
             Vs.append(v)
             Es.append(e)
         
-        Vs = np.reshape(Vs, (np.shape(Vs)[0],) + ll + (1,))
+        # additional dimension for one-hot encoding
+        Vs = np.reshape(Vs, (np.shape(Vs)[0],) + ll + (1,)) 
 
         if self.verbose:
             print('RSMI dataset prepared.')
@@ -232,13 +234,13 @@ class dataset():
         index = np.array([env_shell+1 for _ in range(dim)])
         Vs, Es = self.rsmi_data(index, ll,
                         buffer_size=buffer_size, cap=cap, shape=shape)
-        for d in range(dim):
-            for _ in range((self.L-2*env_shell)//stride):
-                index[d] += stride
-                Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
-                        buffer_size=buffer_size, cap=cap, shape=shape)
 
-                tf.stack([Vs, Vs_], 0)
-                tf.stack([Es, Es_], 0)
+        lin_size = self.L-2*env_shell
+        for index in itertools.product(*[range(0,lin_size,stride) for _ in range(dim)]):
+            Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
+                    buffer_size=buffer_size, cap=cap, shape=shape)
+
+            Vs = tf.concat([Vs, Vs_], 0)
+            Es = tf.concat([Es, Es_], 0)
 
         return Vs, Es
