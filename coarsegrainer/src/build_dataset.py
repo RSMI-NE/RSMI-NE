@@ -11,6 +11,7 @@ Date: 10/01/2021
 
 import os
 import sys
+import warnings
 from tqdm.notebook import tqdm
 import itertools
 #from tqdm import tqdm
@@ -174,6 +175,9 @@ class dataset():
 
                 if self.verbose:
                     print("Loading complete.")
+            else:
+                warnings.warn("Warning: the dataset with desired system parameters could not be found.")
+
 
 
     def rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
