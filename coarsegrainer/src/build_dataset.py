@@ -4,7 +4,7 @@ Also prepares the (h, e) data for for a given filter Lambda
 to calculate the real-space mutual information I_Lambda(h:e).
 
 Author: Doruk Efe Gökmen
-Date: 10/01/2021
+Date: 16/02/2021
 """
 
 # pylint: disable-msg=E0611
@@ -232,8 +232,11 @@ class dataset():
             (default None: assumes square system, i.e. shape=(L,L))
         """
 
+        if cap is None:
+        	cap = self.L
+
         dim = len(ll)
-        env_shell = (cap - ll[0] - 2*buffer_size)//2
+        env_shell = (cap - ll[0] - 2*buffer_size)//2 
 
         index = np.array([env_shell+1 for _ in range(dim)])
         Vs, Es = self.rsmi_data(index, ll,
