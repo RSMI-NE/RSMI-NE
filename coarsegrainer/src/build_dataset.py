@@ -4,14 +4,16 @@ Also prepares the (h, e) data for for a given filter Lambda
 to calculate the real-space mutual information I_Lambda(h:e).
 
 Author: Doruk Efe Gökmen
-Date: 10/01/2021
+Date: 16/02/2021
 """
 
 # pylint: disable-msg=E0611
 
 import os
 import sys
+import warnings
 from tqdm.notebook import tqdm
+import itertools
 #from tqdm import tqdm
 import numpy as np
 import pandas as pd
@@ -173,6 +175,9 @@ class dataset():
 
                 if self.verbose:
                     print("Loading complete.")
+            else:
+                warnings.warn("Warning: the dataset with desired system parameters could not be found.")
+
 
 
     def rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
@@ -203,9 +208,48 @@ class dataset():
             Vs.append(v)
             Es.append(e)
         
-        Vs = np.reshape(Vs, (np.shape(Vs)[0],) + ll + (1,))
+        # additional dimension for one-hot encoding
+        Vs = np.reshape(Vs, (np.shape(Vs)[0],) + ll + (1,)) 
 
         if self.verbose:
             print('RSMI dataset prepared.')
 
         return array2tensor(Vs), array2tensor(Es)
+
+    def chop_data(self, stride, ll, buffer_size, cap=None, shape=None):
+        """Chops real-space configurations according to some stride 
+        to generate many from a given dataset (V,E) samples.
+        Note: Using this might be dangerous in the absence of 
+        translation invariance.
+
+        Keyword arguments:
+        stride = int
+        ll (tuple of int) -- shape of V
+        buffer_size (int) -- buffer width (default 2)
+        cap (int) -- subsystem size<L to cap the environment 
+            (default None: environment is the rest of the system)
+        shape (tuple of int) -- shape of the configurations
+            (default None: assumes square system, i.e. shape=(L,L))
+        """
+
+        if cap is None:
+        	cap = self.L
+
+        dim = len(ll)
+        env_shell = (cap - ll[0] - 2*buffer_size)//2 
+
+        index = np.array([env_shell+1 for _ in range(dim)])
+        Vs, Es = self.rsmi_data(index, ll,
+                        buffer_size=buffer_size, cap=cap, shape=shape)
+
+        lin_size = self.L-2*env_shell
+
+        for i, index in enumerate(itertools.product(*[range(0, lin_size, stride) for _ in range(dim)])):
+            if i > 0:
+                Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
+                        buffer_size=buffer_size, cap=cap, shape=shape)
+
+                Vs = tf.concat([Vs, Vs_], 0)
+                Es = tf.concat([Es, Es_], 0)
+
+        return Vs, Es

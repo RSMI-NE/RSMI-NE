@@ -4,3 +4,6 @@
 
 /coarsegrainer/data/*
 /coarsegrainer/runs/*
+
+/mc_dimer/input/run_dimer_daint_demo
+mc_dimer/input/run_dimer_daint_demo.sh
