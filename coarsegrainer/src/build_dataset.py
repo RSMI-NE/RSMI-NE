@@ -16,9 +16,9 @@ from tqdm.notebook import tqdm
 import itertools
 #from tqdm import tqdm
 import numpy as np
-#import pandas as pd
+import pandas as pd
 import tensorflow as tf
-from cg_utils import array2tensor #, loadNSplit_DimerandVBS
+from cg_utils import loadNSplit_DimerandVBS, array2tensor
 
 def filename(model, lattice, L, J=None, T=None, srn_correlation=None, fileformat='txt', basedir='data', prefix='configs'):
     """Generates filename (str) according to naming scheme from specified model parameters.
