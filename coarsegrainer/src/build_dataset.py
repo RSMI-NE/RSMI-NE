@@ -20,8 +20,9 @@ import pandas as pd
 import tensorflow as tf
 from cg_utils import loadNSplit_DimerandVBS, array2tensor
 
-def filename(model, lattice, L, J=None, T=None, srn_correlation=None, fileformat='txt', basedir='data', prefix='configs'):
-    """Generates filename (str) according to naming scheme from specified model parameters.
+def filename(model, lattice, L, J=None, T=None, srn_correlation=None, 
+            fileformat='txt', basedir='data', prefix='configs'):
+    """Returns filename (str) according to naming scheme from specified model parameters.
 
     Keyword arguments:
     lattice (str) -- type of the underlying lattice, e.g. square, triangular
@@ -43,6 +44,69 @@ def filename(model, lattice, L, J=None, T=None, srn_correlation=None, fileformat
     else:
         return os.path.join(basedir, prefix+"_%s_%s.%s" \
                             % (model, lattice, fileformat))
+
+
+def RSMIdat_filename(model, lattice_type, L, T, buffer_size, 
+                    region='V', dir='RSMIdat', **kwargs):
+    """Returns filename (str) for the RSMI dataset containing the V, E samples.
+    
+    Keyword arguments:
+    data_params (dict) -- specifications for the physical system and sampling
+    region (str, either 'V' or 'E') -- specify whether to read V or E samples
+    """
+
+    if region != 'V' and region != 'E':
+        warnings.warn("Warning: choose either 'V' or 'E' for the region.")
+
+    name = region +'dat_'+model+'_'+lattice_type\
+            +'_L%i+_T%.3f_buffer%i.tfrecord'%(L, T, buffer_size)
+
+    return os.path.join(os.pardir, "data", dir, name)
+
+
+def link_RSMIdat(data_params, type=tf.float32):
+    """Links the RSMI dataset in TFRecords format saved in the disk 
+    with location and filename given by `RSMIdat_filename(data_params)`
+    to the memory.
+
+    Keyword arguments:
+    data_params (dict) -- specifications for the physical system and sampling
+    type (tensorflow.python.framework.dtypes.DType) -- type of the degrees of freedom
+        in the physical model
+    """
+
+    def read_map_fn(x, type=type):
+        return tf.io.parse_tensor(x, type)
+    
+    features = ['V', 'E']
+    parts = []
+    for i, feat in enumerate(features):
+        parts.append(tf.data.TFRecordDataset(
+            RSMIdat_filename(**data_params, region=feat)).map(read_map_fn))
+
+    return tf.data.Dataset.zip(tuple(parts))
+
+
+def save_RSMIdat(data_params, V, E):
+    """Writes the RSMI dataset (V, E) pairs into `TFRecords` format
+    Also returns the RSMI dataset in TF dataset format (Python iterator).
+
+    Keyword arguments:
+    data_params (dict) -- specifications for the physical system and sampling
+    V (tensorflow Tensor) -- samples for the visible region
+    E (tensorflow Tensor) -- samples for the environment region
+    """
+
+    features = ['V', 'E']
+
+    RSMIdat = tf.data.Dataset.from_tensor_slices((V, E))
+
+    for i, _ in enumerate(RSMIdat.element_spec):
+        ds_i = RSMIdat.map(lambda *args: args[i]).map(tf.io.serialize_tensor)
+        writer = tf.data.experimental.TFRecordWriter(
+            RSMIdat_filename(**data_params, region=features[i]))
+        writer.write(ds_i)
+    return RSMIdat
 
 
 def partition_x(x, index, L_B, ll, cap=None):
@@ -101,8 +165,8 @@ class dataset():
     generating the visible block and environment dataset for rsmi optimisation.
     """
 
-    def __init__(self, model, L, lattice_type, dimension=2, configurations = None, N_samples=None, J=None, Nq=None,
-                    T=None, srn_correlation=None, basedir='data', verbose=True):
+    def __init__(self, model, L, lattice_type, dimension=2, configurations = None, N_samples=None, 
+                J=None, Nq=None, T=None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
         """ Constructs all necessary attributes of the physical system.        
         
         Attributes:
@@ -119,9 +183,21 @@ class dataset():
         basedir (str) -- directory name of the input data
         verbose (bool)
 
+        # Properties:
+        # Vs (tensorflow tensor) -- samples for the region to be coarse-grained (visible region)
+        # Es (tensorflow tensor) -- samples for the environment region
+
         Methods:
         rsmi_data() -- returns samples of V and E
+        chop_data()
         """
+
+        # @property
+        # def Vs(self):
+        #     return self._Vs
+
+        # @property Es(self):
+        #     return self._Es
 
         self.model = model
         self.J = J
@@ -246,7 +322,6 @@ class dataset():
         	cap = self.L
 
         dim = len(ll)
-        #env_shell = (cap - ll[0] - 2*buffer_size)//2 
         offset = cap - ll[0] # boundary offset for the visible block
         lin_size = self.L - offset
 

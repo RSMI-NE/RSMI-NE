@@ -49,7 +49,7 @@ def RSMI_estimate(mis, ema_span=5000):
 def train_RSMI_optimiser(e, V, CG_params, critic_params, opt_params, 
                          data_params, bound='infonce', coarse_grain=True, 
                          init_rule=None, optimizer=None, use_GPU=False, 
-                         verbose=True):
+                         verbose=True, load_data_from_disk=False):
   """Main training loop for maximisation of RSMI [I(H:E)] for coarse-graining optimisation.
 
   Keyword arguments:
@@ -68,7 +68,10 @@ def train_RSMI_optimiser(e, V, CG_params, critic_params, opt_params,
   """
 
   # prepare the dataset using tf.data api
-  dat = tf.data.Dataset.from_tensor_slices((V, e))
+  if load_data_from_disk:
+    dat = ds.link_RSMIdat(data_params)
+  else:
+    dat = tf.data.Dataset.from_tensor_slices((V, e))
   dat = dat.shuffle(opt_params['shuffle']).batch(
       opt_params['batch_size']).repeat(opt_params['iterations'])
 
