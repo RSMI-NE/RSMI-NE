@@ -12,9 +12,9 @@ Date: 16/02/2021
 import os
 import sys
 import warnings
+#from tqdm import tqdm
 from tqdm.notebook import tqdm
 import itertools
-#from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -154,6 +154,8 @@ class dataset():
 
         if isinstance(configurations, np.ndarray):
             self.configurations = configurations
+            if len(self.configurations) > self.N_configs:
+                self.N_configs = en(self.configurations)
 
         else:
             if os.path.isfile(filename(**self.system_params, T=self.T, fileformat=self.fileformat, basedir=basedir)):
@@ -180,11 +182,11 @@ class dataset():
 
 
 
-    def rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
+    def rsmi_data(self, indices, ll, buffer_size=2, cap=None, shape=None):
         """Returns data for the visible block V and its environment E.
 
         Keyword arguments:
-        index (tuple of int) -- index of the upper-left corner site of V
+        indices (list of tuples of int) -- index of the upper-left corner site of V
         ll (tuple of int) -- shape of V
         buffer_size (int) -- buffer width (default 2)
         cap (int) -- subsystem size<L to cap the environment 
@@ -192,6 +194,12 @@ class dataset():
         shape (tuple of int) -- shape of the configurations
             (default None: assumes square system, i.e. shape=(L,L))
         """
+
+        def get_index(indices, t):
+            if type(indices) is list:
+                return indices[t]
+            else:
+                return indices
 
         if self.verbose:
             print('Preparing the RSMI dataset...')
@@ -202,6 +210,8 @@ class dataset():
         Vs = []
         Es = []
         for t in range(self.N_configs):
+            index = get_index(indices, t)
+
             config = self.configurations[t].reshape(shape)
 
             v, e = partition_x(config, index, buffer_size, ll, cap=cap)
@@ -236,16 +246,19 @@ class dataset():
         	cap = self.L
 
         dim = len(ll)
-        env_shell = (cap - ll[0] - 2*buffer_size)//2 
+        #env_shell = (cap - ll[0] - 2*buffer_size)//2 
+        offset = cap - ll[0] # boundary offset for the visible block
+        lin_size = self.L - offset
 
-        index = np.array([env_shell+1 for _ in range(dim)])
-        Vs, Es = self.rsmi_data(index, ll,
+        for i, index in tqdm(enumerate(itertools.product(*[range(0, lin_size, stride) for _ in range(dim)]))):
+            if i == 0:
+                index_0 = np.array([offset for _ in range(dim)]) # index of V
+
+                Vs, Es = self.rsmi_data(tuple(index_0), ll,
                         buffer_size=buffer_size, cap=cap, shape=shape)
+            else:
+                index += index_0 # index of V
 
-        lin_size = self.L-2*env_shell
-
-        for i, index in enumerate(itertools.product(*[range(0, lin_size, stride) for _ in range(dim)])):
-            if i > 0:
                 Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
                         buffer_size=buffer_size, cap=cap, shape=shape)
 
