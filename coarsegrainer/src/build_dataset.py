@@ -59,7 +59,7 @@ def RSMIdat_filename(model, lattice_type, L, T, buffer_size,
         warnings.warn("Warning: choose either 'V' or 'E' for the region.")
 
     name = region +'dat_'+model+'_'+lattice_type\
-            +'_L%i+_T%.3f_buffer%i.tfrecord'%(L, T, buffer_size)
+            +'_L%i_T%.3f_buffer%i.tfrecord'%(L, T, buffer_size)
 
     return os.path.join(os.pardir, "data", dir, name)
 
