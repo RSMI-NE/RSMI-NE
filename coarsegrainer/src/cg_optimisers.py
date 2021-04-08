@@ -8,7 +8,7 @@ RSMI_estimate() -- Evaluates the exponential moving average of the RSMI series.
 train_RSMI_optimiser() -- Performs the training loop for maximising RSMI.
 
 Author: Doruk Efe Gökmen
-Date: 20/07/2020
+Date: 08/04/2021
 """
 
 # pylint: disable-msg=E0611

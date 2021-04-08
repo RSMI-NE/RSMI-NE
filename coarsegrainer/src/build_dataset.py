@@ -4,7 +4,7 @@ Also prepares the (h, e) data for for a given filter Lambda
 to calculate the real-space mutual information I_Lambda(h:e).
 
 Author: Doruk Efe Gökmen
-Date: 16/02/2021
+Date: 08/04/2021
 """
 
 # pylint: disable-msg=E0611
