@@ -7,11 +7,11 @@
 - [Overview](#overview)
 - [System requirements](#system-requirements)
 - [Installation](#installation-guide)
-- [License](#license)
+- [Citation](#citation)
 
 ## Overview
 
-`RSMI-NE` employs state-of-the-art results for estimating mutual information (MI) by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), arXiv:1905.06922v1]. This allows it to overcome the severe limitations of the initial proposals for constructing real-space RG transformations by MI-maximization in [M. Koch-Janusz and Z. Ringel, Nature Phys. 14, 578-582 (2018), P.M. Lenggenhager et al., Phys.Rev. X 10, 011037 (2020)], and to reconstruct the relevant operators of the theory, as detailed in the manuscript accompanying this code [D.E. Gökmen, Z. Ringel, S.D. Huber and M. Koch-Janusz, arXiv:2101.11633].
+`RSMI-NE` employs state-of-the-art results for estimating mutual information (MI) by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), [arXiv:1905.06922v1][https://arxiv.org/abs/1905.06922]]. This allows it to overcome the severe limitations of the initial proposals for constructing real-space RG transformations by MI-maximization in [M. Koch-Janusz and Z. Ringel, [Nature Phys. 14, 578-582 (2018)][https://doi.org/10.1038/s41567-018-0081-4], P.M. Lenggenhager et al., [Phys.Rev. X 10, 011037 (2020)][https://journals.aps.org/prx/abstract/10.1103/PhysRevX.10.011037]], and to reconstruct the relevant operators of the theory, as detailed in the manuscripts accompanying this code [D.E. Gökmen, Z. Ringel, S.D. Huber and M. Koch-Janusz (2021), [arXiv:2101.11633][https://arxiv.org/abs/2101.11633] and [arXiv:2103.16887][https://arxiv.org/abs/2103.16887]].
 
 ## System requirements
 
@@ -53,6 +53,27 @@ cd RSMI-NE
 
 Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/tree/main/coarsegrainer/examples>.
 
-## License
+## Citation
 
-This project is covered under the **Apache 2.0 License**.
+If you use RSMI-NE in your work, for the moment please cite our arxiv preprints [arXiv:2101.11633][https://arxiv.org/abs/2101.11633] and [arXiv:2103.16887][https://arxiv.org/abs/2103.16887]:
+
+```latex
+@misc{gökmen2021statistical,
+      title={Statistical physics through the lens of real-space mutual information}, 
+      author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
+      year={2021},
+      eprint={2101.11633},
+      archivePrefix={arXiv},
+      primaryClass={cond-mat.stat-mech}
+}
+
+@misc{gökmen2021phase,
+      title={Phase diagrams with real-space mutual information neural estimation}, 
+      author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
+      year={2021},
+      eprint={2103.16887},
+      archivePrefix={arXiv},
+      primaryClass={cond-mat.stat-mech}
+}
+```
+
