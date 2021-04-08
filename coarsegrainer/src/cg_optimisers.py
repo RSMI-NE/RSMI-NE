@@ -8,7 +8,7 @@ RSMI_estimate() -- Evaluates the exponential moving average of the RSMI series.
 train_RSMI_optimiser() -- Performs the training loop for maximising RSMI.
 
 Author: Doruk Efe Gökmen
-Date: 20/07/2020
+Date: 08/04/2021
 """
 
 # pylint: disable-msg=E0611
@@ -48,15 +48,26 @@ def RSMI_estimate(mis, ema_span=5000):
   return pd.Series(mis).ewm(span=ema_span).mean().tolist()[-1]
 
 
-def train_RSMI_optimiser(e, V, CG_params, critic_params, opt_params, 
+def train_RSMI_optimiser(CG_params, critic_params, opt_params, 
                          data_params, bound='infonce', coarse_grain=True, 
                          init_rule=None, optimizer=None, use_GPU=False, 
-                         verbose=True):
+                         index=None, buffer_size=None, env_size=None,
+                         load_data_from_generators=False,
+                         load_data_from_disk=False, 
+                         E=None, V=None, verbose=True, **kwargs):
   """Main training loop for maximisation of RSMI [I(H:E)] for coarse-graining optimisation.
 
   Keyword arguments:
-  e -- sample dataset for the environment random variable E
-  V -- sample dataset for the visible block V
+  E (tensorflow array) -- sample dataset for the environment random variable E
+    (needed if load_data_from_generators=load_data_from_disk=False)
+  V (tensorflow array) -- sample dataset for the visible block V
+    (needed if load_data_from_generators=load_data_from_disk=False)
+  index (tuple) -- upper-left index of the visible block V 
+    (needed if load_data_from_generators=True)
+  buffer_size (int) -- width of the buffer
+    (needed if load_data_from_generators=True)
+  env_size (int) -- width of the environment region
+    (needed if load_data_from_generators=True)
   critic params (dict) -- parameters for the ansatz function of the MI lower-bound
   opt_params (dict) -- parameters of the optimiser
   data_params (dict) -- parameters for the sample dataset and the physical system
@@ -70,7 +81,23 @@ def train_RSMI_optimiser(e, V, CG_params, critic_params, opt_params,
   """
 
   # prepare the dataset using tf.data api
-  dat = tf.data.Dataset.from_tensor_slices((V, e))
+  if load_data_from_disk:
+    dat = ds.link_RSMIdat(data_params)
+
+  elif load_data_from_generators:
+    ll = CG_params['ll']
+    generator=ds.dataset(**data_params)
+
+    dat = tf.data.Dataset.from_generator(lambda: 
+                generator.gen_rsmi_data(index, ll, buffer_size=buffer_size, 
+                    cap=ll[0]+2*buffer_size+env_size), 
+                    output_types=(tf.float32, tf.float32), 
+                    output_shapes=(list(ll+(1,)), None))
+
+  else:
+    dat = tf.data.Dataset.from_tensor_slices((V, E))
+
+  # adjust the shuffling and batching structure  
   dat = dat.shuffle(opt_params['shuffle']).batch(
       opt_params['batch_size']).repeat(opt_params['iterations'])
 
@@ -126,11 +153,11 @@ def train_RSMI_optimiser(e, V, CG_params, critic_params, opt_params,
   pbar = tqdm(total=opt_params['iterations']*data_params['N_samples']\
                     //opt_params['batch_size'], desc='')
   i = 0
-  for V, e in dat:
+  for V, E in dat:
     CG.global_step = i
 
     # train coarse-graining filters and vbmi critic parameters simultaneously
-    mi, h = train_step(e, V)
+    mi, h = train_step(E, V)
     coarse_vars.append(h.numpy())
     estimates.append(mi.numpy())
     filters.append(CG.coarse_grainer.get_weights()[0])

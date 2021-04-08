@@ -1,0 +1,3 @@
+[submodule "mc_dimers"]
+	path = mc_dimers
+	url = https://github.com/RSMI-NE/mc_dimers.git
