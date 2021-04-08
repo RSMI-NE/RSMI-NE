@@ -29,7 +29,9 @@ tfkl = tf.keras.layers
 
 import build_dataset as ds
 from cg_layers import CoarseGrainer
-sys.path.append(os.path.join(os.pardir,os.pardir,"mi_estimator","src"))
+abspath = os.path.abspath(__file__)
+os.chdir(os.path.dirname(abspath))
+sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
 import VBMI_estimators 
 from VBMI_bounds import lowerbounds
 SeparableCritic = VBMI_estimators.SeparableCritic
