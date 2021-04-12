@@ -20,6 +20,7 @@ import sys
 import numpy as np 
 import pandas as pd
 import time
+import warnings
 #from tqdm import tqdm
 from tqdm.notebook import tqdm
 import tensorflow as tf
@@ -54,7 +55,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
                          index=None, buffer_size=None, env_size=None,
                          load_data_from_generators=False,
                          load_data_from_disk=False, 
-                         E=None, V=None, verbose=True, **kwargs):
+                         E=None, V=None, verbose=True, init_steps=100, **kwargs):
   """Main training loop for maximisation of RSMI [I(H:E)] for coarse-graining optimisation.
 
   Keyword arguments:
@@ -158,20 +159,30 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
 
     # train coarse-graining filters and vbmi critic parameters simultaneously
     mi, h = train_step(E, V)
-    coarse_vars.append(h.numpy())
-    estimates.append(mi.numpy())
-    filters.append(CG.coarse_grainer.get_weights()[0])
 
-    if CG.method == 'pseudo-categorical sampling':
-        pbar.set_description(
-            f'Gumbel-softmax temperature {CG.tau:.2f}, I={mi:.2f}')
-    elif CG.method == 'STE quantisation':
-        pbar.set_description(f'STE quantisation, I={mi:.2f}')
-    else:
-        pbar.set_description(f'Convolution, I={mi:.2f}')
+    if i > init_steps and math.isnan(mi):
+      print('RSMI is found to be NaN.')
+      warnings.warn('A numerical instability encountered during training.')
+      print('Please try using a larger sampling or disable discretisation.')
+      return np.array(estimates), np.array(coarse_vars), np.array(filters), CG._Λ
+      raise SystemExit(0)
+      #sys.exit()
+      #break
+    else: 
+      coarse_vars.append(h.numpy())
+      estimates.append(mi.numpy())
+      filters.append(CG.coarse_grainer.get_weights()[0])
 
-    pbar.update(1) # update progress bar for each iteration step
-    i += 1
+      if CG.method == 'pseudo-categorical sampling':
+          pbar.set_description(
+              f'Gumbel-softmax temperature {CG.tau:.2f}, I={mi:.2f}')
+      elif CG.method == 'STE quantisation':
+          pbar.set_description(f'STE quantisation, I={mi:.2f}')
+      else:
+          pbar.set_description(f'Convolution, I={mi:.2f}')
+
+      pbar.update(1) # update progress bar for each iteration step
+      i += 1
 
   print('Training complete.')
   return np.array(estimates), np.array(coarse_vars), np.array(filters), CG._Λ
