@@ -34,7 +34,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from matplotlib.transforms import blended_transform_factory, TransformedBbox
-from mpl_toolkits.axes_grid.inset_locator import BboxPatch, BboxConnector
+from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector
 
 
 def round_up(n, decimals=0):
