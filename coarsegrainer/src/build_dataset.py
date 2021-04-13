@@ -460,7 +460,7 @@ class dataset():
         if self.verbose:
             print('RSMI dataset prepared.')
 
-        return array2tensor(Vs), array2tensor(Es)
+        return Vs, Es #array2tensor(Vs), array2tensor(Es)
 
 
     def chop_data(self, stride, ll, buffer_size, cap=None, shape=None):
@@ -499,7 +499,7 @@ class dataset():
                 Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
                         buffer_size=buffer_size, cap=cap, shape=shape)
 
-                Vs = tf.concat([Vs, Vs_], 0)
-                Es = tf.concat([Es, Es_], 0)
+                Vs = np.concat([Vs, Vs_], 0) #tf.concat([Vs, Vs_], 0)
+                Es = np.concat([Es, Es_], 0) #tf.concat([Es, Es_], 0)
 
         return Vs, Es
