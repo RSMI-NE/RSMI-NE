@@ -499,7 +499,7 @@ class dataset():
                 Vs_, Es_ = self.rsmi_data(tuple(index), ll, 
                         buffer_size=buffer_size, cap=cap, shape=shape)
 
-                Vs = np.concat([Vs, Vs_], 0) #tf.concat([Vs, Vs_], 0)
-                Es = np.concat([Es, Es_], 0) #tf.concat([Es, Es_], 0)
+                Vs = np.concatenate([Vs, Vs_], 0) #tf.concat([Vs, Vs_], 0)
+                Es = np.concatenate([Es, Es_], 0) #tf.concat([Es, Es_], 0)
 
         return Vs, Es
