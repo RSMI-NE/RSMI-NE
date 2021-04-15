@@ -30,7 +30,6 @@ tfkl = tf.keras.layers
 
 import wandb
 from wandb.keras import WandbCallback
-wandb.login()
 
 import build_dataset as ds
 from cg_layers import CoarseGrainer
