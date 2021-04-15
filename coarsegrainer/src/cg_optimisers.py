@@ -28,6 +28,10 @@ from tensorflow.keras import datasets, models, regularizers, backend
 from tensorflow.python.framework import ops
 tfkl = tf.keras.layers
 
+import wandb
+from wandb.keras import WandbCallback
+wandb.login()
+
 import build_dataset as ds
 from cg_layers import CoarseGrainer
 abspath = os.path.abspath(__file__)
@@ -154,6 +158,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   pbar = tqdm(total=opt_params['iterations']*data_params['N_samples']\
                     //opt_params['batch_size'], desc='')
   i = 0
+  epoch_id = 0
   for V, E in dat:
     CG.global_step = i
 
@@ -182,6 +187,14 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
           pbar.set_description(f'Convolution, I={mi:.2f}')
 
       pbar.update(1) # update progress bar for each iteration step
+
+      # log metrixs using Weights and Biases API
+      wandb.log({'epochs': epoch_id,
+        'loss': np.mean(estimates)
+        })
+
+      if i % opt_params['iterations'] == 0:
+      epoch_id += 1
       i += 1
 
   print('Training complete.')
