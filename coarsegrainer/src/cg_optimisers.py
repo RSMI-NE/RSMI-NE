@@ -194,7 +194,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
         })
 
       if i % opt_params['iterations'] == 0:
-      epoch_id += 1
+        epoch_id += 1
       i += 1
 
   print('Training complete.')
