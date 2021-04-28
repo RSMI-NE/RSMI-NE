@@ -189,7 +189,8 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
         r'\sisetup{detect-all}',    # force siunitx to use the fonts
     ]  
 
-    epochs = opt_params['iterations']*N_samples//opt_params['batch_size']
+ #   epochs = opt_params['iterations']*N_samples//opt_params['batch_size']
+    epochs = opt_params['iterations']#*int(np.ceil(data_params['N_samples']/opt_params['batch_size']))
     num_hiddens = CG_params['num_hiddens']
     ll = CG_params['ll']
 
@@ -199,7 +200,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
         width_ratios += [10]
     width_ratios += [0.5]
 
-    fig = plt.figure(1, figsize=(4, 3))
+    fig = plt.figure(1, figsize=(8, 6))#(4, 3)
 
     """
     1. Plot series for rsmi
@@ -252,8 +253,8 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
             if filter_index == 0:
                 axf.set_title("%i" % (t+1))
 
-            axf.set_xticks([i for i in range(ll[0])])
-            axf.set_yticks([i for i in range(ll[1])])
+            axf.set_xticks([i for i in range(ll[0]) if i%8==0])
+            axf.set_yticks([i for i in range(ll[1]) if i%8==0])
             axf.autoscale(enable=True)
 
             plt.setp(axf.get_xticklabels(), visible=False)
@@ -285,6 +286,8 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
         elif generator.model == 'ising2d':
             plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
                                     generator.model+generator.lattice_type+'{0:.3f}'.format(generator.J)+'.pdf'))
+        elif generator.model == 'STM2d':
+            plt.savefig(os.path.join('/Users/maciej/work','LDOS1/rsmi','RSMImax'+'_smp'+sample_no+'_ll'+CG_params['ll'][1]+'_b'+buffer_size+'_e'+env_size+'_s'+stride+'.pdf'))
         else:
             plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
                                     generator.model+generator.lattice_type+'.pdf'))

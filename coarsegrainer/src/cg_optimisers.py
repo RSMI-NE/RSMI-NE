@@ -154,8 +154,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   coarse_vars = []
   filters = []
 
-  pbar = tqdm(total=opt_params['iterations']*data_params['N_samples']\
-                    //opt_params['batch_size'], desc='')
+  pbar = tqdm(total=opt_params['iterations']*int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
   i = 0
   epoch_id = 0
   for V, E in dat:
@@ -172,10 +171,19 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
       raise SystemExit(0)
       #sys.exit()
       #break
-    else: 
-      coarse_vars.append(h.numpy())
-      estimates.append(mi.numpy())
-      filters.append(CG.coarse_grainer.get_weights()[0])
+    else:
+      if i % int(np.ceil(data_params['N_samples']/opt_params['batch_size'])) == 0:
+        coarse_vars.append(h.numpy())
+        estimates.append(mi.numpy())
+        filters.append(CG.coarse_grainer.get_weights()[0])
+        # log metrixs using Weights and Biases API
+        wandb.log({'EMA_30 MI': pd.Series(estimates).ewm(span=30).mean().to_numpy()[-1]})
+                   #,'first filter': wandb.Image(np.array(filters)[-1][:,:,0])})
+        epoch_id += 1
+      #every 100 epochs save the filter
+      #if i % (100*int(np.ceil(data_params['N_samples']/opt_params['batch_size']))) == 0:
+        #wandb.run.summary["last_filters_array"] = np.array(filters)[-1]
+        #wandb.run.summary["filter_1_image"] = wandb.Image(np.array(filters)[-1][:,:,0])
 
       if CG.method == 'pseudo-categorical sampling':
           pbar.set_description(
@@ -187,15 +195,12 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
 
       pbar.update(1) # update progress bar for each iteration step
 
-      # log metrixs using Weights and Biases API
-      wandb.log({'epochs': epoch_id,
-        'loss': np.mean(estimates)
-        })
-
-      if i % opt_params['iterations'] == 0:
-        epoch_id += 1
       i += 1
-
+  #Save last filters
+  if not(math.isnan(mi)):
+    for k in range(np.array(filters).shape[3]):
+      wandb.run.summary["filter %i" % k] = wandb.Image(np.array(filters)[-1][:,:,k])
+    
   print('Training complete.')
   return np.array(estimates), np.array(coarse_vars), np.array(filters), CG._Λ
 
