@@ -237,7 +237,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
                 w = np.reshape(w_series[t].transpose()[
                                filter_index], tuple(reversed(ll)))
             else:
-                w = np.reshape(w_series[t], tuple(reversed(ll)))
+                w = np.reshape(w_series[t].transpose(), tuple(reversed(ll)))
 
             axf = fig.add_subplot(gs[filter_index, ii])
             axf.set_xlim(0, ll[0]-1)
