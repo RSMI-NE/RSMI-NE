@@ -15,7 +15,7 @@ import numpy as np
 import tensorflow as tf
 from cg_utils import array2tensor
 
-def filename(model, lattice, L, J=None, T=None, srn_correlation=None, 
+def filename(model, lattice, L, J=None, T=None, 
             fileformat='txt', basedir='data', prefix='configs'):
     """Returns filename (str) according to naming scheme from specified model parameters.
 
@@ -24,7 +24,6 @@ def filename(model, lattice, L, J=None, T=None, srn_correlation=None,
     L (int) -- linear size of the lattice
     J (float) -- Ising coupling constant (default None)
     T (float) -- temperature of the system (default None)
-    srn_correlation (bool) -- full correlation for corrupted dimer variables on lattice faces
     """
 
     if basedir == 'data':
