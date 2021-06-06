@@ -11,13 +11,9 @@ Author: Doruk Efe Gökmen
 Date: 10/01/2021
 """
 
-# pylint: disable-msg=E0611
-# pylint: disable=invalid-unary-operand-type
-
-import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from utils import reduce_logmeanexp_offdiag, const_fn
+from utils import reduce_logmeanexp_offdiag
 
 
 def infonce_lower_bound(x, y, f_ansatz):

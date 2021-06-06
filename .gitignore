@@ -1,6 +1,8 @@
 *.DS_Store
+*.vscode
 *.ipynb_checkpoints
 *__pycache__
+tensorflow_macos_venv
 
 /coarsegrainer/data/*
 /coarsegrainer/runs/*

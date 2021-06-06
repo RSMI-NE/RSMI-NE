@@ -11,20 +11,12 @@ Author: Doruk Efe Gökmen
 Date: 08/04/2021
 """
 
-# pylint: disable-msg=E0611
-# pylint: disable=import-error
-
-import math
 import os
 import sys
 import numpy as np 
 import pandas as pd
-import time
-#from tqdm import tqdm
-from tqdm.notebook import tqdm
+from tqdm.autonotebook import tqdm  
 import tensorflow as tf
-from tensorflow.keras import datasets, models, regularizers, backend  
-from tensorflow.python.framework import ops
 tfkl = tf.keras.layers
 
 import build_dataset as ds

@@ -10,19 +10,16 @@ Author: Doruk Efe Gökmen
 Date: 11/01/2021
 """
 
-# pylint: disable=import-error
 
 import numpy as np  # used for exponential moving average
 import tensorflow as tf
-from tensorflow.keras import datasets, models, regularizers, backend  
-from tensorflow.python.framework import ops
+#from tensorflow.keras import datasets, models, regularizers, backend  
+#from tensorflow.python.framework import ops
 
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 tfkl = tf.keras.layers
 tfp = tfp.layers
-
-from cg_utils import array2tensor
 
 
 class Conv2DSingle(tfkl.Layer):
