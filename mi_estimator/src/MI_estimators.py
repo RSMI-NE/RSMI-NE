@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pylab as plt
-#from tqdm import tqdm
-from tqdm.notebook import tqdm
 import VBMI_estimators
 
 class VBMI():

@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "coarsegrainer/src",
+        "mi_estimator/src"
+    ]
+}
