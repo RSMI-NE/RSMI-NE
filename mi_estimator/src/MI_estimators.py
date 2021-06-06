@@ -1,5 +1,3 @@
-import numpy as np
-import matplotlib.pylab as plt
 import VBMI_estimators
 
 class VBMI():
