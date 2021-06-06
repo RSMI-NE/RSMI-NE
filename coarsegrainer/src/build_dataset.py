@@ -7,20 +7,15 @@ Author: Doruk Efe Gökmen
 Date: 08/04/2021
 """
 
-# pylint: disable-msg=E0611
-
 import os
-import sys
 import warnings
-#from tqdm import tqdm
-from tqdm.notebook import tqdm
+from tqdm.autonotebook import tqdm
 import itertools
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from cg_utils import loadNSplit_DimerandVBS, array2tensor
+from cg_utils import array2tensor
 
-def filename(model, lattice, L, J=None, T=None, srn_correlation=None, 
+def filename(model, lattice, L, J=None, T=None, 
             fileformat='txt', basedir='data', prefix='configs'):
     """Returns filename (str) according to naming scheme from specified model parameters.
 
@@ -29,7 +24,6 @@ def filename(model, lattice, L, J=None, T=None, srn_correlation=None,
     L (int) -- linear size of the lattice
     J (float) -- Ising coupling constant (default None)
     T (float) -- temperature of the system (default None)
-    srn_correlation (bool) -- full correlation for corrupted dimer variables on lattice faces
     """
 
     if basedir == 'data':
@@ -287,7 +281,7 @@ class dataset():
         if isinstance(configurations, np.ndarray):
             self.configurations = configurations
             if len(self.configurations) > self.N_configs:
-                self.N_configs = en(self.configurations)
+                self.N_configs = len(self.configurations)
 
         else:
             if os.path.isfile(filename(**self.system_params, T=self.T, fileformat=self.fileformat, basedir=basedir)):

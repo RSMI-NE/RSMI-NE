@@ -9,17 +9,12 @@ Authors: Doruk Efe Gökmen
 Date: 04/08/2020
 """
 
-# pylint: disable-msg=E0611
-
-#from tqdm import tqdm # use this for command-line execution
-from tqdm.notebook import tqdm  # use this for notebook execution
+from tqdm.autonotebook import tqdm
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
 from VBMI_bounds import lowerbounds
 from critics import SeparableCritic
-from utils import mlp
 
 
 def train_estimator(X, Y, critic_params, opt_params, bound='infonce'):
