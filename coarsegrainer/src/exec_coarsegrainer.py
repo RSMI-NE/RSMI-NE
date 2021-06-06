@@ -7,7 +7,6 @@ Date: 04/08/2020
 """
 
 import os
-import sys
 import json
 import argparse
 import pickle

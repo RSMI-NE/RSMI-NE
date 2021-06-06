@@ -7,7 +7,6 @@ Author: Doruk Efe Gökmen
 Date: 13/03/2020
 """
 
-# pylint: disable-no-name-in-module
 
 import math
 import os
@@ -16,7 +15,6 @@ import numpy as np
 import pandas as pd
 
 sys.path.append(os.path.join(os.pardir, os.pardir, "mi_estimator", "src"))
-import MI_estimators # pylint: disable=import-error
 
 import matplotlib
 import matplotlib.pyplot as plt
