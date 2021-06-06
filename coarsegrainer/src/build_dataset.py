@@ -231,7 +231,7 @@ class dataset():
     """
 
     def __init__(self, model, L, lattice_type, dimension=2, configurations = None, N_samples=None, 
-                J=None, Nq=None, T=None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
+                J=None, Nq=None, T=None, basedir='data', verbose=True, **kwargs):
         """ Constructs all necessary attributes of the physical system.        
         
         Attributes:
@@ -244,7 +244,6 @@ class dataset():
         J (float) -- Ising coupling constant (default None)
         Nq (int) -- number of states for a Potts degree of freedom (default None)
         T (float) -- temperature of the system
-        srn_correlation -- full correlation for corrupted dimer variables on lattice faces
         basedir (str) -- directory name of the input data
         verbose (bool)
         """
@@ -253,7 +252,6 @@ class dataset():
         self.J = J
         self.Nq = Nq #number of states for a Potts variable
         self.T = T
-        self.srn_correlation = srn_correlation
         self.L = L 
         self.dimension = dimension 
         self.N_samples = N_samples
@@ -267,7 +265,6 @@ class dataset():
             'lattice': self.lattice_type,
             'J': self.J,
             'L': self.L,
-            'srn_correlation': self.srn_correlation
         }
         
         self.dtype = int
