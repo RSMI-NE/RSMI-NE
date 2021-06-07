@@ -153,14 +153,19 @@ def plot_filter_series(coarse_grainer, series_skip=1, filter_index=None, filter_
         ii += 1
 
 
-def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_bound='InfoNCE', 
-                        series_skip=1, index=(6, 6), N_samples=10000, EMA_span=100, 
-                        ihdp_est=True, mi_max=1, filter_lim=0.5, interpolation='none',
-                        cmap='coolwarm', save=False):
+def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, 
+                        mi_bound='InfoNCE', series_skip=1, N_samples=10000, 
+                        EMA_span=100, mi_max=1, filter_lim=0.5, 
+                        interpolation='none', cmap='coolwarm', save=False):
 
     matplotlib.style.use('classic')
+    plt.rc('text', usetex=True)
     params = {
-        #'text.latex.preamble': ['\\usepackage{gensymb}', '\\usepackage[light,math]{kurier}'],
+        'text.latex.preamble': r'\usepackage{tgheros}'    # helvetica font
+                           + r'\usepackage{sansmath}'   # math-font matching  helvetica
+                           + r'\sansmath'                # actually tell tex to use it!
+                           + r'\usepackage{siunitx}'    # micro symbols
+                           + r'\sisetup{detect-all}',    # force siunitx to use the fonts
         'image.interpolation': 'nearest',
         'image.cmap': 'coolwarm',
         'axes.grid': False,
@@ -177,15 +182,6 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
         'figure.facecolor': 'white',
     }
     matplotlib.rcParams.update(params)
-
-    plt.rc('text', usetex=True)
-    plt.rcParams['text.latex.preamble'] = [
-        r'\usepackage{tgheros}',    # helvetica font
-        r'\usepackage{sansmath}',   # math-font matching  helvetica
-        r'\sansmath'                # actually tell tex to use it!
-        r'\usepackage{siunitx}',    # micro symbols
-        r'\sisetup{detect-all}',    # force siunitx to use the fonts
-    ]  
 
  #   epochs = opt_params['iterations']*N_samples//opt_params['batch_size']
     epochs = opt_params['iterations']#*int(np.ceil(data_params['N_samples']/opt_params['batch_size']))
@@ -280,7 +276,8 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
 
     if save:
         if generator.model == 'intdimer2d':
-            plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax'+generator.model+generator.lattice_type+'{0:.3f}'.format(generator.T)+'.pdf'))
+            plt.savefig(os.path.join(os.pardir, 'data', 'results', 
+            'RSMImax'+generator.model+generator.lattice_type+'{0:.3f}'.format(generator.T)+'.pdf'))
         elif generator.model == 'ising2d':
             plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
                                     generator.model+generator.lattice_type+'{0:.3f}'.format(generator.J)+'.pdf'))
