@@ -183,8 +183,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
     }
     matplotlib.rcParams.update(params)
 
- #   epochs = opt_params['iterations']*N_samples//opt_params['batch_size']
-    epochs = opt_params['iterations']#*int(np.ceil(data_params['N_samples']/opt_params['batch_size']))
+    epochs = opt_params['iterations']
     num_hiddens = CG_params['num_hiddens']
     ll = CG_params['ll']
 
