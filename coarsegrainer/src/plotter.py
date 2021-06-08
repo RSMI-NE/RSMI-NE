@@ -154,8 +154,9 @@ def plot_filter_series(coarse_grainer, series_skip=1, filter_index=None, filter_
 
 
 def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, 
-                        mi_bound='InfoNCE', series_skip=1, N_samples=10000, 
+                        mi_bound=r'$\rm InfoNCE$', series_skip=1, N_samples=10000, 
                         EMA_span=100, mi_max=1, filter_lim=0.5, 
+                        fontsize=9, figsize=[8,6], font_family='helvetica',
                         interpolation='none', cmap='coolwarm', save=False):
 
     matplotlib.style.use('classic')
@@ -166,19 +167,19 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
                            + r'\sansmath'                # actually tell tex to use it!
                            + r'\usepackage{siunitx}'    # micro symbols
                            + r'\sisetup{detect-all}',    # force siunitx to use the fonts
-        'image.interpolation': 'nearest',
-        'image.cmap': 'coolwarm',
+        'image.interpolation': interpolation,
+        'image.cmap': cmap,
         'axes.grid': False,
         'savefig.dpi': 400,  # to adjust notebook inline plot size
-        'axes.labelsize': 7,  # fontsize for x and y labels (was 10)
-        'axes.titlesize': 7,
-        'font.size': 7,
-        'legend.fontsize': 7,  # was 10
-        'xtick.labelsize': 7,
-        'ytick.labelsize': 7,
+        'axes.labelsize': fontsize,  # fontsize for x and y labels (was 10)
+        'axes.titlesize': fontsize,
+        'font.size': fontsize,
+        'legend.fontsize': fontsize,  # was 10
+        'xtick.labelsize': fontsize,
+        'ytick.labelsize': fontsize,
         'text.usetex': True,
-        'figure.figsize': [4.39, 3.10],
-        'font.family': 'helvetica',
+        'figure.figsize': figsize,
+        'font.family': font_family,
         'figure.facecolor': 'white',
     }
     matplotlib.rcParams.update(params)
@@ -193,7 +194,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
         width_ratios += [10]
     width_ratios += [0.5]
 
-    fig = plt.figure(1, figsize=(4, 3))
+    fig = plt.figure(1)
 
     """
     1. Plot series for rsmi
@@ -202,10 +203,10 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
     mis_smooth = pd.Series(mis).ewm(span=EMA_span).mean()
 
     ax1 = plt.subplot(int(str(num_hiddens+1)+'1'+str(num_hiddens+1)))
-    ax1.set_xlabel('$\\rm{iterations}$')
-    ax1.set_ylabel('$I_\\Lambda(\\mathcal{H}:\\mathcal{E})$')
-    p1 = ax1.plot(mis, label=mi_bound, color='lime', alpha=0.3)[0]
-    ax1.plot(mis_smooth, c=p1.get_color(), label=mi_bound+' $\\rm{EMA}$')
+    ax1.set_xlabel(r'$\rm{iterations}$')
+    ax1.set_ylabel(r'$I_\Lambda(\mathcal{H}:\mathcal{E})$')
+    p1 = ax1.plot(mis, label=mi_bound, color='black', alpha=0.3)[0]
+    ax1.plot(mis_smooth, c=p1.get_color(), label=mi_bound+r' $\rm{EMA}$')
     #p1 = ax1.plot(mis, label='$\\rm{InfoNCE}$', color='lime', alpha=0.3)[0]
     #ax1.plot(mis_smooth, c=p1.get_color(), label='$\\rm{InfoNCE}$'+' $\\rm{EMA}$')
     ax1.legend(frameon=False, bbox_to_anchor=(1.05, 1), loc='upper left')
@@ -238,8 +239,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
                 # TODO: set adaptive value for 4
                 zoom_effect01(axf, ax1, t-epochs/120, t+epochs/120)
 
-            im = axf.imshow(w, clim=(-filter_lim, filter_lim), aspect=1,
-                            interpolation=interpolation, cmap=cmap)
+            im = axf.imshow(w, clim=(-filter_lim, filter_lim), aspect=1)
             axf.xaxis.set_major_locator(plt.MaxNLocator(4))
             axf.yaxis.set_major_locator(plt.MaxNLocator(5))
 
