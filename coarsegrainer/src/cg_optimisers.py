@@ -106,7 +106,9 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   else:
     opt = optimizer
 
+  
   @tf.function
+  @tf.autograph.experimental.do_not_convert
   def train_step(x, y):
     """Single training step: performs gradient descent 
     on the coarse-graining network and vbmi net simultaneously.
