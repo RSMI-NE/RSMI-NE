@@ -152,7 +152,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   pbar = tqdm(total=opt_params['iterations']*int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
 
   epoch_id = 0
-  for i, V, E in enumerate(dat):
+  for i, (V, E) in enumerate(dat):
     CG.global_step = i
 
     # train coarse-graining filters and vbmi critic parameters simultaneously
