@@ -150,18 +150,19 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   filters = []
 
   pbar = tqdm(total=opt_params['iterations']*int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
-  i = 0
+
   epoch_id = 0
-  for V, E in dat:
+  for i, V, E in enumerate(dat):
     CG.global_step = i
 
     # train coarse-graining filters and vbmi critic parameters simultaneously
     mi, h = train_step(E, V)
 
     if i > init_steps and math.isnan(mi):
-      print('RSMI is found to be NaN.')
-      warnings.warn('A numerical instability encountered during training.')
-      print('Please try using a larger sampling or disable discretisation.')
+      if verbose:
+        print('RSMI is found to be NaN.')
+        warnings.warn('A numerical instability encountered during training.')
+        print('Please try using a larger sampling or disable discretisation.')
       return np.array(estimates), np.array(coarse_vars), np.array(filters), CG._Λ
       raise SystemExit(0)
       #sys.exit()
@@ -190,14 +191,14 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
 
       pbar.update(1) # update progress bar for each iteration step
 
-      i += 1
 
   #Save last filters
   if use_wandb:
     if not(math.isnan(mi)):
       for k in range(np.array(filters).shape[3]):
         wandb.run.summary["filter %i" % k] = wandb.Image(np.array(filters)[-1][:,:,k])
-    
-  print('Training complete.')
+
+  if verbose:  
+    print('Training complete.')
   return np.array(estimates), np.array(coarse_vars), np.array(filters), CG._Λ
 
