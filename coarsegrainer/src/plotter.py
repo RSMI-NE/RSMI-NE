@@ -154,10 +154,10 @@ def plot_filter_series(coarse_grainer, series_skip=1, filter_index=None, filter_
 
 
 def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, 
-                        mi_bound=r'$\rm InfoNCE$', series_skip=1, N_samples=10000, 
-                        EMA_span=100, mi_max=1, filter_lim=0.5, 
-                        fontsize=9, figsize=[8,6], font_family='helvetica',
-                        interpolation='none', cmap='coolwarm', save=False):
+                        mi_bound=r'$\rm InfoNCE$', series_skip=1, EMA_span=100, 
+                        filter_lim=0.5, fontsize=9, figsize=[8,6], 
+                        font_family='helvetica', interpolation='none', 
+                        cmap='coolwarm', save=False):
 
     matplotlib.style.use('classic')
     plt.rc('text', usetex=True)
@@ -236,7 +236,6 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
             axf = fig.add_subplot(gs[filter_index, ii])
             axf.set_xlim(0, ll[0]-1)
             if filter_index == num_hiddens-1:
-                # TODO: set adaptive value for 4
                 zoom_effect01(axf, ax1, t-epochs/120, t+epochs/120)
 
             im = axf.imshow(w, clim=(-filter_lim, filter_lim), aspect=1)
@@ -244,7 +243,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
             axf.yaxis.set_major_locator(plt.MaxNLocator(5))
 
             if filter_index == 0:
-                axf.set_title("%i" % (t+1))
+                axf.set_title(r"$\rm{%i}$" % (t+1))
 
             axf.set_xticks([i for i in range(ll[0]) if i%8==0])
             axf.set_yticks([i for i in range(ll[1]) if i%8==0])
