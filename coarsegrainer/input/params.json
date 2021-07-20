@@ -1,20 +1,6 @@
 {
-    "data_params": {
-        "T": 2.200,
-        "dimension": 2,
-        "N_samples": 28800,
-        "model": "intdimer2d",
-        "lattice_type": "square",
-        "J": 1.0,
-        "Nq": 2,
-        "L": 64,
-        "srn_correlation": true,
-        "height_field": false,
-        "verbose": true
-    },
-
-    "cg_params": {
-        "num_hiddens": 2,
+    "CG_params": {
+        "num_hiddens": 1,
         "ll": [
             8,
             8
@@ -25,24 +11,22 @@
         "use_logits": true,
         "relaxation_rate": 0.0005,
         "min_temperature": 0.1,
-        "init_temperature": 2.0
+        "init_temperature": 0.65
     },
 
     "critic_params": {
-        "layers": 2,
+        "layers": 3,
         "embed_dim": 8,
-        "hidden_dim": 64,
-        "activation": "relu"
+        "hidden_dim": 32,
+        "activation": "relu",
+        "use_dropout": true,
+        "dropout_rate": 0.25
     },
 
     "opt_params": {
-        "batch_size": 100,
-        "iterations": 80,
+        "batch_size": 500,
+        "iterations": 200,
         "shuffle": 30000,
-        "learning_rate": 1e-3
-    },
-
-    "estimators": {
-        "InfoNCE": {"estimator": "infonce", "critic": "separable", "baseline": "constant"}
+        "learning_rate": 4e-3
     }
 }
