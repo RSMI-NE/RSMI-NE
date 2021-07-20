@@ -46,13 +46,14 @@ def RSMI_estimate(mis, ema_span=5000):
 
 
 def train_RSMI_optimiser(CG_params, critic_params, opt_params, 
-                         data_params, bound='infonce', coarse_grain=True, 
-                         init_rule=None, optimizer=None, use_GPU=False, 
+                         data_params, bound='infonce', coarse_grain: bool=True, 
+                         init_rule=None, optimizer=None, use_GPU: bool=False, 
                          index=None, buffer_size=None, env_size=None,
-                         load_data_from_generators=False,
-                         load_data_from_disk=False, use_wandb=False,
+                         load_data_from_generators: bool=False,
+                         load_data_from_disk: bool=False, use_wandb: bool=False,
                          E=None, V=None, verbose=True, init_steps=100, **kwargs):
-  """Main training loop for maximisation of RSMI [I(H:E)] for coarse-graining optimisation.
+  """Main training loop for maximisation of RSMI [I(H:E)] 
+  for coarse-graining optimisation.
 
   Keyword arguments:
   E (tensorflow array) -- sample dataset for the environment random variable E
@@ -149,7 +150,8 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   coarse_vars = []
   filters = []
 
-  pbar = tqdm(total=opt_params['iterations']*int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
+  pbar = tqdm(total=opt_params['iterations']
+  *int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
 
   epoch_id = 0
   for i, (V, E) in enumerate(dat):

@@ -9,7 +9,9 @@ class VBMI():
     """
     
     def __init__(self, batch_size, layers=2, embed_dim=16, hidden_dim=64, activation='relu',
-                 iterations=600, shuffle=0, learning_rate=5e-3, bound='infonce'):
+                 iterations=600, shuffle=0, learning_rate=5e-3, bound='infonce',
+                 use_dropout: bool=False, dropout_rate: float=0.2,
+                 **kwargs):
         """
         Mutual information estimation by maximising variational lower bounds 
         represented by neural network ansätze.
@@ -39,6 +41,8 @@ class VBMI():
             'embed_dim': embed_dim,
             'hidden_dim': hidden_dim,
             'activation': activation,
+            'use_dropout': use_dropout,
+            'dropout_rate': dropout_rate,
         }
 
         self.opt_params = {

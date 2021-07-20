@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 tfkl = tf.keras.layers
 
-def array2tensor(z, dtype=tf.float32):
+def array2tensor(z: np.ndarray, dtype=tf.float32):
   """Converts numpy arrays into tensorflow tensors.
   
   Keyword arguments:
@@ -33,8 +33,9 @@ def reduce_logmeanexp_offdiag(x, axis=None):
     log_num_elem = tf.math.log(num_samples - 1)
   else:
     log_num_elem = tf.math.log(num_samples * (num_samples - 1))  
-  return tf.reduce_logsumexp(x - tf.linalg.tensor_diag(np.inf  * tf.ones(num_samples)), axis=axis)\
-         - log_num_elem
+  return tf.reduce_logsumexp(x - 
+              tf.linalg.tensor_diag(np.inf  * tf.ones(num_samples)), axis=axis)\
+          - log_num_elem
 
 def const_fn(x, const=1.0):
   """Function mapping any argument to a constant float value.
@@ -46,16 +47,32 @@ def const_fn(x, const=1.0):
   return const
   
 
-def mlp(hidden_dim, output_dim, layers, activation):
-  """Constructs multi-layer perceptron (MLP) critic with given number of hidden layers.
+def mlp(hidden_dim: int, output_dim: int, layers: int, activation, 
+        use_dropout: bool=False, dropout_rate: float=0.2):
+  """Constructs multi-layer perceptron (MLP) critic 
+  with given number of hidden layers.
 
   Keyword arguments:
   hidden_dim (int) -- dimensionality of hidden dense layers
   output_dim (int) -- dimensionality of the output tensor
   layers (int) -- number of hidden dense layers
   activation -- activation function of the neurons
+  use_dropout (bool) -- add dropout after hidden layers
+  dropout_rate (float)
+
+  Returns:
+  The MLP network (tf.keras.Model)
   """
 
-  return tf.keras.Sequential(
-      [tfkl.Dense(hidden_dim, activation) for _ in range(layers)] +
-      [tfkl.Dense(output_dim)])
+  hidden_dense_layer = tfkl.Dense(hidden_dim, activation)
+  dropout_layer = tfkl.Dropout(dropout_rate)
+  visible_dense_layer = tfkl.Dense(output_dim)
+
+  if use_dropout:
+    return tf.keras.Sequential(
+        [layer for _ in range(layers) 
+          for layer in [hidden_dense_layer, dropout_layer]] 
+        + [visible_dense_layer])
+  else:
+    return tf.keras.Sequential(
+        [hidden_dense_layer for _ in range(layers)] + [visible_dense_layer])
