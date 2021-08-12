@@ -173,21 +173,21 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
         'legend.fontsize': 7,  # was 10
         'xtick.labelsize': 7,
         'ytick.labelsize': 7,
-        'text.usetex': True,
+        'text.usetex': False, #True
         'figure.figsize': [4.39, 3.10],
         'font.family': 'helvetica',
         'figure.facecolor': 'white',
     }
     matplotlib.rcParams.update(params)
 
-    plt.rc('text', usetex=True)
-    plt.rcParams['text.latex.preamble'] = [
-        r'\usepackage{tgheros}',    # helvetica font
-        r'\usepackage{sansmath}',   # math-font matching  helvetica
-        r'\sansmath'                # actually tell tex to use it!
-        r'\usepackage{siunitx}',    # micro symbols
-        r'\sisetup{detect-all}',    # force siunitx to use the fonts
-    ]  
+    #plt.rc('text', usetex=True)
+    #plt.rcParams['text.latex.preamble'] = [
+    #    r'\usepackage{tgheros}',    # helvetica font
+    #    r'\usepackage{sansmath}',   # math-font matching  helvetica
+    #    r'\sansmath'                # actually tell tex to use it!
+    #    r'\usepackage{siunitx}',    # micro symbols
+    #    r'\sisetup{detect-all}',    # force siunitx to use the fonts
+    #]  
 
  #   epochs = opt_params['iterations']*N_samples//opt_params['batch_size']
     epochs = opt_params['iterations']#*int(np.ceil(data_params['N_samples']/opt_params['batch_size']))

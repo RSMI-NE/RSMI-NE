@@ -1,5 +1,5 @@
 """
-Author: Doruk Efe Gökmen
+Author: Doruk Efe Gökmen, Maciej Koch-Janusz
 Date: 10/01/2021
 """
 
@@ -8,6 +8,7 @@ import json
 import scipy.io
 import numpy as np
 import tensorflow as tf
+import networkx as nx
 
 def array2tensor(z, dtype=tf.float32):
     """Converts numpy arrays into tensorflow tensors.
@@ -95,3 +96,66 @@ def loadNSplit_DimerandVBS(bwImMatFN, Li, Lo, corr_diag_spins=False):
 
     bwImSetO = np.reshape(bwImSetO, (raw_n*n_tiles**2, Lo**2), order='C')
     return (bwImSetI, bwImSetO)
+
+def construct_reference_graph(edges,nodes):
+    """Creates a networkx weighted graph to serve as a reference geometry for
+    configurations (atm defined on the edges, can extend to nodes...)
+    To avoid ordering issues (very common!) edges are asigned unique id, which 
+    is their order in the origianl edges array. This will allow to cut out appropriate
+    subarrays from configuration files.
+    
+    Keyword arguments:
+    edges -- np.array of shape (#edges,2)
+    nodes -- np.array of shape (#nodes,), assumed labelled from 0 to #nodes-1
+    """
+    even_ends,odd_ends = zip(*edges)
+    labelled_edges = list(zip(even_ends,odd_ends,range(len(even_ends))))
+    
+    G=nx.Graph()
+    G.add_weighted_edges_from(labelled_edges,weight='edge_id')
+    G.add_nodes_from(nodes)
+    
+    return G
+    
+def construct_VE_edgelists(G, V_index, L_B, ll, cap=None):
+    """Partitions a sample configuration into a visible block
+    and an annular environment separated by a buffer. 
+    Assumes an underlying generic graph given as networkx graph object 
+    with unique edge identifiers (as edge weights).
+    Assumes (at the moment) d.o.f. live on the edges only, so V,E
+    can have overlapping vertices for L_b=0, but will not have overlapping edges.
+
+    Keyword arguments:
+    x -- a SINGLE sample configuration (defined w.r.t. the graph), so a 1D array
+    G -- networkx object, defines nodes and edges w.r.t. which x is defined.
+    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+    L_B (int) -- width of the buffer, topological distance
+    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+    cap (int) -- linear size of the finite subsystem capped from x, topological distance
+    """
+    if cap is None:
+        cap = len(G.nodes)-1
+    
+    #Create sets of vertices belonging to subgraphs defining V,E
+    GV_verts = nx.descendants_at_distance(G,V_index,0)
+    for i in range(ll+1):
+        GV_verts = GV_verts | nx.descendants_at_distance(G,V_index,i)
+    
+    GE_verts = nx.descendants_at_distance(G,V_index,ll+L_B)
+    for i in range(ll+L_B,cap+1,1):
+        GE_verts = GE_verts | nx.descendants_at_distance(G,V_index,i)
+    
+    # Create the (weighted by edge id) subgraphs    
+    GV = nx.subgraph(G,GV_verts)
+    GE = nx.subgraph(G,GE_verts)
+    
+    # Extract the ids of edges in E,V. This is a set of dictionaries, one for each edge.
+    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
+    _,_,GE_extracted_edge_ids = zip(*list(nx.to_edgelist(GE)))
+    
+    # Create a list of V,E edge identifiers to be used as mask in slicing
+    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
+    GE_edges = sorted(np.array([list(d.values())[0] for d in GE_extracted_edge_ids]))
+ 
+    
+    return GV_edges, GE_edges
