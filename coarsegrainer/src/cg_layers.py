@@ -25,6 +25,8 @@ tfp = tfp.layers
 class Conv2DSingle(tfkl.Layer):
   """Custom convolution layer to produce the (stochastic) coarse-graining map
   from 2(or 1)-d visible degrees of freedom.
+
+  TODO: Handle multicomponent original degrees of freedom.
   """
 
   def __init__(self, hidden_dim, input_shape=(2, 2), init_rule=None):
@@ -60,6 +62,8 @@ class Conv2DSingle(tfkl.Layer):
 class Conv3DSingle(tfkl.Layer):
   """Custom convolution layer to produce the (stochastic) 
   coarse-graining map for 3-d systems.
+
+  TODO: Handle multicomponent original degrees of freedom.
   """
 
   def __init__(self, hidden_dim, input_shape=(2, 2, 2)):
@@ -127,7 +131,7 @@ class CoarseGrainer(tf.keras.Model):
       self.coarse_grainer = Conv3DSingle(num_hiddens, ll)
       
     if h_embed:  
-      # sample approx. discrete coarse-grained variable using Gumbel-softmax trick
+      # sample pseudo-discrete coarse-grained variable using Gumbel-softmax trick
       self.method = 'pseudo-categorical sampling'
       self.r = relaxation_rate
       self.min_tau = min_temperature
@@ -135,13 +139,25 @@ class CoarseGrainer(tf.keras.Model):
 
       if self.Nq == None: # if alphabet size for dof. is unspecified, assume binary variable
         if use_probs:
-          self.embedder = tfkl.Lambda( #better call this embedder
-              lambda x: tfd.RelaxedBernoulli(self.tau, probs=x).sample())
+          # This old version leads to arithmetic underflow in the log.
+          # self.embedder = tfkl.Lambda( 
+          #    lambda x: tfd.RelaxedBernoulli(self.tau, probs=x).sample())
+
+          # stack the convolution, activation and embedding layers:
+          #self._Λ = tf.keras.Sequential([self.coarse_grainer,
+          #                               tfkl.Activation(tf.nn.sigmoid),
+          #                               tfkl.Flatten(),
+          #                               self.embedder])
+
+          self.embedder = tfkl.Lambda(
+              lambda x: tfd.RelaxedBernoulli(self.tau, 
+                                    logits=tf.nn.log_softmax(x)).sample())
+
           # stack the convolution, activation and embedding layers
           self._Λ = tf.keras.Sequential([self.coarse_grainer, 
-                                         tfkl.Activation(tf.nn.softmax), 
                                          tfkl.Flatten(), 
                                          self.embedder])
+
         elif use_logits:
           self.embedder = tfkl.Lambda(
               lambda x: tfd.RelaxedBernoulli(self.tau, logits=x).sample())
@@ -151,21 +167,25 @@ class CoarseGrainer(tf.keras.Model):
                                          self.embedder])
         
       else: # sample Nq-valued discrete (categorical) variables using CNN kernel
+        # TODO: flattening the convolutional output messes up the one-hot encoding direction.
+        # We actually should not flatten the output, but instead preserve the one-hot encoding!
+
+        # We specify the one-hot encoding direction inside the softmax 
+        # (i.e. axis=1) for multi-component coarse-grained variables.
+        # TODO: Debug this.
+
         if use_probs:
           self.embedder = tfkl.Lambda(lambda x: tfd.RelaxedOneHotCategorical(
-                                      self.tau, probs=x).sample())
+                                self.tau, logits=tf.nn.log_softmax(x, axis=1)).sample())
           # stack the convolution, activation and embedding layers
           self._Λ = tf.keras.Sequential([self.coarse_grainer, 
-                                         tfkl.Activation(tf.nn.softmax), 
-                                         tfkl.Flatten(), 
-                                         self.embedder])
+                                         self.embedder]) # TODO: squeeze the output?
         elif use_logits:
           self.embedder = tfkl.Lambda(lambda x: tfd.RelaxedOneHotCategorical(
                                       self.tau, logits=x).sample()) 
           # stack the convolution and embedding layers
           self._Λ = tf.keras.Sequential([self.coarse_grainer, 
-                                         tfkl.Flatten(), 
-                                         self.embedder])
+                                         self.embedder])  # TODO: squeeze the output?
 
     else:
       # directly use the CNN output as the coarse-grained variable

@@ -446,7 +446,7 @@ class dataset():
             Es.append(e)
         
         # additional dimension for one-hot encoding
-        Vs = np.reshape(Vs, (np.shape(Vs)[0],) + ll + (1,)) 
+        Vs = np.reshape(Vs, (Vs.shape[0],) + ll + (1,)) 
 
         if self.verbose:
             print('RSMI dataset prepared.')
