@@ -97,12 +97,14 @@ def loadNSplit_DimerandVBS(bwImMatFN, Li, Lo, corr_diag_spins=False):
     bwImSetO = np.reshape(bwImSetO, (raw_n*n_tiles**2, Lo**2), order='C')
     return (bwImSetI, bwImSetO)
 
-def construct_reference_graph(edges,nodes):
+def construct_reference_graph(edges=None,nodes=None):
     """Creates a networkx weighted graph to serve as a reference geometry for
-    configurations (atm defined on the edges, can extend to nodes...)
-    To avoid ordering issues (very common!) edges are asigned unique id, which 
-    is their order in the origianl edges array. This will allow to cut out appropriate
-    subarrays from configuration files.
+    configurations (at the momement defined only on the edges)
+    To avoid ordering issues (very common!) edges are assigned a unique id, which 
+    is their order in the original "edges" array (assumes edges are unique). 
+    This allows to slice appropriate subarrays from configuration files.
+    !!! This version assumes edges are given as a list of (even_vertex,odd_vertex) !!!
+    Actually, this should work also if not bi-partite. Check.
     
     Keyword arguments:
     edges -- np.array of shape (#edges,2)
@@ -117,21 +119,58 @@ def construct_reference_graph(edges,nodes):
     
     return G
     
+def construct_edgelist_from_nodes(G,nodes):
+    """Returns a list of ids of edges in the subgraph of G defined by nodes
+    
+    Keyword arguments:
+    G -- networkx graph object, w.r.t. which configurations are defined.
+    nodes -- list of nodes in the graph
+    """
+    # Create the (weighted by edge id) subgraphs 
+    SubG = nx.subgraph(G,nodes)
+    
+    # Extract the ids of edges in the subgraph. This is a set of dictionaries, one for each edge.
+    _,_,extracted_edge_ids = zip(*list(nx.to_edgelist(SubG)))
+    
+    # Create a list of edge identifiers to be used as mask in slicing
+    SubG_edges = sorted(np.array([list(d.values())[0] for d in extracted_edge_ids]))
+    
+    return SubG_edges
+    
+def construct_edgelist_from_edges(G,edges):
+    """Returns a list of ids of edges in the subgraph of G defined by edges
+    
+    Keyword arguments:
+    G -- networkx graph object, w.r.t. which configurations are defined.
+    edges -- list of edges (u,v) in the subgraph
+    """
+    # Create the (weighted by edge id) subgraphs
+    SubG = G.edge_subgraph(edges)
+    
+    # Extract the ids of edges in the subgraph. This is a set of dictionaries, one for each edge.
+    _,_,extracted_edge_ids = zip(*list(nx.to_edgelist(SubG)))
+    
+    # Create a list of edge identifiers to be used as mask in slicing
+    SubG_edges = sorted(np.array([list(d.values())[0] for d in extracted_edge_ids]))
+    
+    return SubG_edges
+
+    
 def construct_VE_edgelists(G, V_index, L_B, ll, cap=None):
-    """Partitions a sample configuration into a visible block
-    and an annular environment separated by a buffer. 
+    """Returns two lists of edge identifies (ids), corresponding to partitioning the graph
+    into a visible block of topological radius ll around site V_index, and an annular
+    environment E, separated by L_B edges. 
     Assumes an underlying generic graph given as networkx graph object 
-    with unique edge identifiers (as edge weights).
+    with unique edge ids (as edge weights).
     Assumes (at the moment) d.o.f. live on the edges only, so V,E
     can have overlapping vertices for L_b=0, but will not have overlapping edges.
 
     Keyword arguments:
-    x -- a SINGLE sample configuration (defined w.r.t. the graph), so a 1D array
-    G -- networkx object, defines nodes and edges w.r.t. which x is defined.
+    G -- networkx graph object, w.r.t. which configurations are defined.
     V_index (int) -- center vertex of the visible block V (node in a networkx graph)
     L_B (int) -- width of the buffer, topological distance
     ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
-    cap (int) -- linear size of the finite subsystem capped from x, topological distance
+    cap (int) -- linear size of the finite subsystem capped from the graph, topological distance
     """
     if cap is None:
         cap = len(G.nodes)-1
@@ -145,17 +184,7 @@ def construct_VE_edgelists(G, V_index, L_B, ll, cap=None):
     for i in range(ll+L_B,cap+1,1):
         GE_verts = GE_verts | nx.descendants_at_distance(G,V_index,i)
     
-    # Create the (weighted by edge id) subgraphs    
-    GV = nx.subgraph(G,GV_verts)
-    GE = nx.subgraph(G,GE_verts)
-    
-    # Extract the ids of edges in E,V. This is a set of dictionaries, one for each edge.
-    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
-    _,_,GE_extracted_edge_ids = zip(*list(nx.to_edgelist(GE)))
-    
-    # Create a list of V,E edge identifiers to be used as mask in slicing
-    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
-    GE_edges = sorted(np.array([list(d.values())[0] for d in GE_extracted_edge_ids]))
+    GV_edges = construct_edgelist_from_nodes(G,GV_verts)
+    GE_edges = construct_edgelist_from_nodes(G,GE_verts)
  
-    
     return GV_edges, GE_edges

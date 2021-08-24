@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import networkx as nx
-from cg_utils import loadNSplit_DimerandVBS, array2tensor, construct_reference_graph
+from cg_utils import loadNSplit_DimerandVBS, array2tensor, construct_reference_graph, construct_VE_edgelists
 
 def filename(model, lattice, L, J=None, T=None, srn_correlation=None, 
             fileformat='txt', basedir='data', prefix='configs'):
@@ -162,52 +162,71 @@ def partition_x(x, index, L_B, ll, cap=None):
     return v, e
     
     
-def partition_x_graph(x, G, V_index, L_B, ll, cap=None):
-    """Partitions a sample configuration into a visible block
-    and an annular environment separated by a buffer. 
-    Assumes an underlying generic graph given as networkx graph object 
-    with unique edge identifiers (as edge weights).
-    Assumes (at the moment) d.o.f. live on the edges only, so V,E
-    can have overlapping vertices for L_b=0, but will not have overlapping edges.
+#def partition_x_graph(x, G, V_index, L_B, ll, cap=None):
+#    """Partitions a sample configuration into a visible block
+#    and an annular environment separated by a buffer. 
+#    Assumes an underlying generic graph given as networkx graph object 
+#    with unique edge identifiers (as edge weights).
+#    Assumes (at the moment) d.o.f. live on the edges only, so V,E
+#    can have overlapping vertices for L_b=0, but will not have overlapping edges.
+#
+#    Keyword arguments:
+#    x -- either a single 1D sample configuration (defined w.r.t. the graph), or a 2D stack of them
+#    G -- networkx object, defines nodes and edges w.r.t. which x is defined.
+#    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+#    L_B (int) -- width of the buffer, topological distance
+#    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+#    cap (int) -- linear size of the finite subsystem capped from x, topological distance
+#    """
+#    if cap is None:
+#        cap = len(G.nodes)-1
+#    
+#    #Create sets of vertices belonging to subgraphs defining V,E
+#    GV_verts = nx.descendants_at_distance(G,V_index,0)
+#    for i in range(ll+1):
+#        GV_verts = GV_verts | nx.descendants_at_distance(G,V_index,i)
+#    
+#    GE_verts = nx.descendants_at_distance(G,V_index,ll+L_B)
+#    for i in range(ll+L_B,cap+1,1):
+#        GE_verts = GE_verts | nx.descendants_at_distance(G,V_index,i)
+#    
+#    # Create the (weighted by edge id) subgraphs    
+#    GV = nx.subgraph(G,GV_verts)
+#    GE = nx.subgraph(G,GE_verts)
+#    
+#    # Extract the ids of edges in E,V. This is a set of dictionaries, one for each edge.
+#    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
+#    _,_,GE_extracted_edge_ids = zip(*list(nx.to_edgelist(GE)))
+#    
+#    # Create a list of V,E edge identifiers to be used as mask in slicing
+#    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
+#    GE_edges = sorted(np.array([list(d.values())[0] for d in GE_extracted_edge_ids]))
+#    
+#
+#    # carve out e and v
+#    if x.ndim ==1:
+#        v = x[GV_edges]
+#        e = x[GE_edges]
+#    else:
+#        v = x[:,GV_edges]
+#        e = x[:,GE_edges]        
+#    
+#    return v, e
 
-    Keyword arguments:
-    x -- a SINGLE sample configuration (defined w.r.t. the graph), so a 1D array
-    G -- networkx object, defines nodes and edges w.r.t. which x is defined.
-    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
-    L_B (int) -- width of the buffer, topological distance
-    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
-    cap (int) -- linear size of the finite subsystem capped from x, topological distance
+
+def partition_x_graph(x,GV_edges,GE_edges):
+    """Partitions a sample configuration into a visible block V
+    and an environment E. E and V are *arbitrary*, given by sets of edges.  
     """
-    if cap is None:
-        cap = len(G.nodes)-1
-    
-    #Create sets of vertices belonging to subgraphs defining V,E
-    GV_verts = nx.descendants_at_distance(G,V_index,0)
-    for i in range(ll+1):
-        GV_verts = GV_verts | nx.descendants_at_distance(G,V_index,i)
-    
-    GE_verts = nx.descendants_at_distance(G,V_index,ll+L_B)
-    for i in range(ll+L_B,cap+1,1):
-        GE_verts = GE_verts | nx.descendants_at_distance(G,V_index,i)
-    
-    # Create the (weighted by edge id) subgraphs    
-    GV = nx.subgraph(G,GV_verts)
-    GE = nx.subgraph(G,GE_verts)
-    
-    # Extract the ids of edges in E,V. This is a set of dictionaries, one for each edge.
-    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
-    _,_,GE_extracted_edge_ids = zip(*list(nx.to_edgelist(GE)))
-    
-    # Create a list of V,E edge identifiers to be used as mask in slicing
-    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
-    GE_edges = sorted(np.array([list(d.values())[0] for d in GE_extracted_edge_ids]))
-    
     # carve out e and v
-    v = x[GV_edges]
-    e = x[GE_edges]
+    if x.ndim ==1:
+        v = x[GV_edges]
+        e = x[GE_edges]
+    else:
+        v = x[:,GV_edges]
+        e = x[:,GE_edges]        
     
     return v, e
-
 
 def get_V(x, index, ll):
     """Get the region to be coarse-grained.
@@ -568,28 +587,52 @@ class dataset():
         return array2tensor(Vs), array2tensor(Es)
         
         
-    def rsmi_data_graph(self, V_index, ll, buffer_size=2, cap=None):
-        """Returns data for the visible block V and its environment E.
-        Graph (networkx) version.
-
+    #def rsmi_data_graph(self, V_index, ll, buffer_size=2, cap=None):
+    #    """Returns data for the visible block V and its environment E.
+    #    Graph (networkx) version.
+    #
+    #    Keyword arguments:
+    #    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+    #    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+    #    buffer_size (int) -- buffer width (default 2)
+    #    cap (int) -- subsystem size to cap the environment 
+    #        (default None: environment is the rest of the system)
+    #    """
+    #    
+    #    if self.verbose:
+    #        print('Preparing the RSMI dataset...')
+    #    
+    #    #Vs = []
+    #    #Es = []
+    #
+    #    #for t in range(self.N_configs):
+    #    #    v, e = partition_x_graph(self.configurations[t], self.G, V_index, buffer_size, ll, cap=cap)
+    #    #    Vs.append(v)
+    #    #    Es.append(e)
+    #    Vs, Es = partition_x_graph(self.configurations, self.G, V_index, buffer_size, ll, cap=cap)
+    #    
+    #    # additional dimension for one-hot encoding (used for more conv channels, only Vs)
+    #    Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 
+    #
+    #    if self.verbose:
+    #        print('RSMI dataset prepared.')
+    #
+    #    return array2tensor(Vs), array2tensor(Es)
+        
+    def rsmi_data_graph(self, GV_edges,GE_edges):
+        """Returns arrays of samples (as tf tensors) for the visible block V the environment E.
+        Graph (networkx) version. E and V are arbitrary, specified by lists of unique indentifiers 
+        of the edges in them.
+        
         Keyword arguments:
-        V_index (int) -- center vertex of the visible block V (node in a networkx graph)
-        ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
-        buffer_size (int) -- buffer width (default 2)
-        cap (int) -- subsystem size to cap the environment 
-            (default None: environment is the rest of the system)
+        GV_edges -- list of ids of edges in V
+        GE_edges -- list of ids of edges in E
         """
         
         if self.verbose:
             print('Preparing the RSMI dataset...')
-        
-        Vs = []
-        Es = []
 
-        for t in range(self.N_configs):
-            v, e = partition_x_graph(self.configurations[t], self.G, V_index, buffer_size, ll, cap=cap)
-            Vs.append(v)
-            Es.append(e)
+        Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
         
         # additional dimension for one-hot encoding (used for more conv channels, only Vs)
         Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 

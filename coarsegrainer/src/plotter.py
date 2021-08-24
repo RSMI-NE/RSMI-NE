@@ -3,7 +3,7 @@ Compact plotter for accuracy and loss series during training of
 coarse-grainer convnet and rsmimax net, density plots for weight series and 
 the estimation of mutual information series for selected filters.
 
-Author: Doruk Efe Gökmen
+Author: Doruk Efe Gökmen, Maciej Koch-Janusz
 Date: 13/03/2020
 """
 
@@ -292,3 +292,6 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, mi_
             plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
                                     generator.model+generator.lattice_type+'.pdf'))
     #plt.show()
+    
+def plot_reference_graph():
+    pass
