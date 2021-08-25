@@ -67,6 +67,8 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   env_size (int) -- width of the environment region
     (needed if load_data_from_generators=True)
   critic params (dict) -- parameters for the ansatz function of the MI lower-bound
+  CG_params (dict) -- parameters of the coarse-grainer, includes distinction between
+    regular lattices and arbitrary graph cases
   opt_params (dict) -- parameters of the optimiser
   data_params (dict) -- parameters for the sample dataset and the physical system
   bound (str) -- MI lower-bound (default InfoNCE)
