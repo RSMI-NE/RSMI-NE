@@ -243,7 +243,7 @@ def get_V(x, index, ll):
     x_ext = np.pad(x, [(0, ll[d]) for d in range(dim)] + [(0, 0)], 'wrap')
 
     visible_slice = tuple([slice(index[d], index[d]+ll[d])
-                           for d in range(dim)] + slice(0, -1))
+                           for d in range(dim)] + [slice(0, -1)])
     v = x_ext[visible_slice]
 
     return v.flatten()
