@@ -2,8 +2,9 @@
 to extract optimal coarse-graining rules.
 Also prepares the (h, e) data for for a given filter Lambda 
 to calculate the real-space mutual information I_Lambda(h:e).
+Separate versions for regular lattices, and arbitrary graphs.
 
-Author: Doruk Efe Gökmen
+Author: Doruk Efe Gökmen, Maciej Koch-Janusz
 Date: 08/04/2021
 """
 
@@ -13,7 +14,8 @@ from tqdm.autonotebook import tqdm
 import itertools
 import numpy as np
 import tensorflow as tf
-from cg_utils import array2tensor
+import networkx as nx
+from cg_utils import array2tensor, construct_reference_graph, construct_VE_edgelists
 
 def filename(model, lattice, L, J=None, T=None, 
             fileformat='txt', basedir='data', prefix='configs'):
@@ -106,6 +108,8 @@ def save_RSMIdat(data_params, V, E):
 def partition_x(x, index, L_B, ll, cap=None):
     """Partitions a sample configuration into a visible block
     and an annular environment separated by a buffer. 
+    Assumes a standard regular lattice e.g. square.
+
     TODO: address the multi-component case.
 
     Keyword arguments:
@@ -152,7 +156,73 @@ def partition_x(x, index, L_B, ll, cap=None):
     v = v.flatten()
 
     return v, e
+    
+    
+#def partition_x_graph(x, G, V_index, L_B, ll, cap=None):
+#    """Partitions a sample configuration into a visible block
+#    and an annular environment separated by a buffer. 
+#    Assumes an underlying generic graph given as networkx graph object 
+#    with unique edge identifiers (as edge weights).
+#    Assumes (at the moment) d.o.f. live on the edges only, so V,E
+#    can have overlapping vertices for L_b=0, but will not have overlapping edges.
+#
+#    Keyword arguments:
+#    x -- either a single 1D sample configuration (defined w.r.t. the graph), or a 2D stack of them
+#    G -- networkx object, defines nodes and edges w.r.t. which x is defined.
+#    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+#    L_B (int) -- width of the buffer, topological distance
+#    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+#    cap (int) -- linear size of the finite subsystem capped from x, topological distance
+#    """
+#    if cap is None:
+#        cap = len(G.nodes)-1
+#    
+#    #Create sets of vertices belonging to subgraphs defining V,E
+#    GV_verts = nx.descendants_at_distance(G,V_index,0)
+#    for i in range(ll+1):
+#        GV_verts = GV_verts | nx.descendants_at_distance(G,V_index,i)
+#    
+#    GE_verts = nx.descendants_at_distance(G,V_index,ll+L_B)
+#    for i in range(ll+L_B,cap+1,1):
+#        GE_verts = GE_verts | nx.descendants_at_distance(G,V_index,i)
+#    
+#    # Create the (weighted by edge id) subgraphs    
+#    GV = nx.subgraph(G,GV_verts)
+#    GE = nx.subgraph(G,GE_verts)
+#    
+#    # Extract the ids of edges in E,V. This is a set of dictionaries, one for each edge.
+#    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
+#    _,_,GE_extracted_edge_ids = zip(*list(nx.to_edgelist(GE)))
+#    
+#    # Create a list of V,E edge identifiers to be used as mask in slicing
+#    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
+#    GE_edges = sorted(np.array([list(d.values())[0] for d in GE_extracted_edge_ids]))
+#    
+#
+#    # carve out e and v
+#    if x.ndim ==1:
+#        v = x[GV_edges]
+#        e = x[GE_edges]
+#    else:
+#        v = x[:,GV_edges]
+#        e = x[:,GE_edges]        
+#    
+#    return v, e
 
+
+def partition_x_graph(x,GV_edges,GE_edges):
+    """Partitions a sample configuration into a visible block V
+    and an environment E. E and V are *arbitrary*, given by sets of edges.  
+    """
+    # carve out e and v
+    if x.ndim ==1:
+        v = x[GV_edges]
+        e = x[GE_edges]
+    else:
+        v = x[:,GV_edges]
+        e = x[:,GE_edges]        
+    
+    return v, e
 
 def get_V(x, index, ll):
     """Get the region to be coarse-grained.
@@ -174,6 +244,34 @@ def get_V(x, index, ll):
     v = x_ext[visible_slice]
 
     return v.flatten()
+    
+def get_V_graph(x, G, V_index, ll):
+    """Get the region to be coarse-grained. Graph (networkx) version.
+
+    Keyword arguments:
+    x -- a sample configuration
+    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+    """
+    
+    #Create sets of vertices belonging to subgraph defining V
+    GV_verts = nx.descendants_at_distance(G,V_index,0)
+    for i in range(ll+1):
+        GV_verts = GV_verts | nx.descendants_at_distance(G,V_index,i)   
+    
+    # Create the (weighted by edge id) subgraphs    
+    GV = nx.subgraph(G,GV_verts)
+    
+    # Extract the ids of edges in V. This is a set of dictionaries, one for each edge.
+    _,_,GV_extracted_edge_ids = zip(*list(nx.to_edgelist(GV)))
+    
+    # Create a list of V edge identifiers to be used as mask in slicing
+    GV_edges = sorted(np.array([list(d.values())[0] for d in GV_extracted_edge_ids]))
+    
+    # carve out  v
+    v = x[GV_edges]
+    
+    return v
 
 
 def get_E(x, index, L_B, ll, cap=None):
@@ -233,15 +331,16 @@ class dataset():
     chop_data()
     """
 
-    def __init__(self, model, L, lattice_type, dimension=2, configurations = None, N_samples=None, 
-                J=None, Nq=None, T=None, basedir='data', verbose=True, **kwargs):
+    def __init__(self, model, L, lattice_type, dimension=2, G = None, configurations = None, N_samples=None, 
+                J=None, Nq=None, T=None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
         """ Constructs all necessary attributes of the physical system.        
         
         Attributes:
         model (str) -- type of the physical model
         L (int) -- linear system size
-        lattice_type (str) -- e.g. square or triangular
+        lattice_type (str) -- e.g. square or triangular, or networkx for graphs
         dimension (int) -- dimensionality of the sytem
+        G (networkx graph) -- reference graph, for system on non-periodic lattices
         configurations (np.array) -- input configurations pre-loaded into memory (default None)
         N_samples (int) -- total number of sample configurations (default None)
         J (float) -- Ising coupling constant (default None)
@@ -260,6 +359,7 @@ class dataset():
         self.N_samples = N_samples
         self.N_configs = self.N_samples
         self.lattice_type = lattice_type
+        self.G = G
         self.basedir = basedir
         self.verbose = verbose
 
@@ -340,6 +440,27 @@ class dataset():
 
         if self.verbose:
             print('Visible block dataset prepared.')
+            
+    
+    def gen_Vs_graph(self,V_index,ll):
+        """Generator for for the visible block to be coarse-grained,
+        for a graph (networkx) input.
+
+        Keyword arguments:
+        V_index (int) -- index of graph node which is the center of V
+        ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+        """
+        
+        if self.verbose:
+            print('Preparing the visible block dataset...')
+
+        for t in range(self.N_configs):
+            config = self.configurations[t]
+            # additional dimension for one-hot encoding (used for more conv channels, only Vs)
+            yield array2tensor(get_V_graph(config, self.G, V_index, ll)[:,np.newaxis])
+
+        if self.verbose:
+            print('Visible block dataset prepared.')
 
 
     def gen_Es(self, indices, ll, buffer_size=2, cap=None, shape=None):
@@ -377,6 +498,10 @@ class dataset():
 
         if self.verbose:
             print('Environment dataset prepared.')
+            
+            
+    def gen_Es_graph():
+        return 0
 
 
     def gen_rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
@@ -454,6 +579,62 @@ class dataset():
         
         # additional dimension for one-hot encoding
         Vs = np.reshape(Vs, (Vs.shape[0],) + ll + (1,)) 
+
+        if self.verbose:
+            print('RSMI dataset prepared.')
+
+        return array2tensor(Vs), array2tensor(Es)
+        
+        
+    #def rsmi_data_graph(self, V_index, ll, buffer_size=2, cap=None):
+    #    """Returns data for the visible block V and its environment E.
+    #    Graph (networkx) version.
+    #
+    #    Keyword arguments:
+    #    V_index (int) -- center vertex of the visible block V (node in a networkx graph)
+    #    ll (int) -- radius of the visible block V, topological distance in neighbours (vertices)
+    #    buffer_size (int) -- buffer width (default 2)
+    #    cap (int) -- subsystem size to cap the environment 
+    #        (default None: environment is the rest of the system)
+    #    """
+    #    
+    #    if self.verbose:
+    #        print('Preparing the RSMI dataset...')
+    #    
+    #    #Vs = []
+    #    #Es = []
+    #
+    #    #for t in range(self.N_configs):
+    #    #    v, e = partition_x_graph(self.configurations[t], self.G, V_index, buffer_size, ll, cap=cap)
+    #    #    Vs.append(v)
+    #    #    Es.append(e)
+    #    Vs, Es = partition_x_graph(self.configurations, self.G, V_index, buffer_size, ll, cap=cap)
+    #    
+    #    # additional dimension for one-hot encoding (used for more conv channels, only Vs)
+    #    Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 
+    #
+    #    if self.verbose:
+    #        print('RSMI dataset prepared.')
+    #
+    #    return array2tensor(Vs), array2tensor(Es)
+        
+    def rsmi_data_graph(self, GV_edges,GE_edges):
+        """Returns arrays of samples (as tf tensors) for the visible block V the environment E.
+        Graph (networkx) version. E and V are arbitrary, specified by lists of unique indentifiers 
+        of the edges in them.
+        
+        Keyword arguments:
+        GV_edges -- list of ids of edges in V
+        GE_edges -- list of ids of edges in E
+        """
+        
+        if self.verbose:
+            print('Preparing the RSMI dataset...')
+
+        Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
+        
+        # additional dimension for one-hot encoding (used for more conv channels, only Vs)
+        Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 
 
         if self.verbose:
             print('RSMI dataset prepared.')

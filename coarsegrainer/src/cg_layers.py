@@ -4,9 +4,10 @@ and embedding network layers for the RSMI-NE.
 Classes: 
 Conv2DSingle -- Convolves V with Λ for 1- and 2-d systems
 Conv3DSingle -- Convolves V with Λ for 3-d systems
+ConvGraphSingle -- Convolves V with Λ for systems defined on a (networkx) graph
 CoarseGrainer -- Stacks convolution and embedding layers and maps V to H
 
-Author: Doruk Efe Gökmen
+Author: Doruk Efe Gökmen, Maciej Koch-Janusz
 Date: 11/01/2021
 """
 
@@ -79,7 +80,7 @@ class Conv3DSingle(tfkl.Layer):
   TODO: Handle multicomponent original degrees of freedom.
   """
 
-  def __init__(self, hidden_dim, input_shape=(2, 2, 2)):
+  def __init__(self, hidden_dim, input_shape=(2, 2, 2), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -90,10 +91,15 @@ class Conv3DSingle(tfkl.Layer):
     """
 
     super(Conv3DSingle, self).__init__()
-
-    w_init = tf.random_normal_initializer()
-    self.ws = tf.Variable(initial_value=w_init(shape=input_shape+(hidden_dim,),
-                                               dtype='float32'), trainable=True)
+    
+    if isinstance(init_rule, np.ndarray):
+      init = init_rule
+    
+    else:
+        w_init = tf.random_normal_initializer()
+        init = w_init(shape=input_shape+(hidden_dim,), dtype='float32')
+        
+    self.ws = tf.Variable(initial_value=init, trainable=True)
 
   def call(self, inputs):
     """Computes the dot product between the input and kernel weights.
@@ -103,10 +109,47 @@ class Conv3DSingle(tfkl.Layer):
     """
 
     return tf.einsum('tijkl,ijks->tsl', inputs, self.ws)
+    
+class ConvGraphSingle(tfkl.Layer):
+  """Custom convolution layer to produce the (stochastic) coarse-graining map
+  from visible degrees of freedom on a (netoworkx) graph. The difference to
+  Conv2DSingle is that ll in *not* a tuple, but an int defining the radius of V, 
+  all the configurations are otherwise one-dimensional. 
+  The input_shape is (#edges in V,)
+  """
+
+  def __init__(self, hidden_dim, input_shape=(2,), init_rule=None):
+    """Constructs the convolutional net.
+    
+    Attributes:
+    ws -- weights of the kernel
+
+    Methods: 
+    call() -- call the network as a function
+    """
+
+    super(ConvGraphSingle, self).__init__()
+
+    if isinstance(init_rule, np.ndarray):
+      init = init_rule
+    else:
+      w_init = tf.random_normal_initializer()
+      init = w_init(shape=input_shape+(hidden_dim,), dtype='float32')
+      
+    self.ws = tf.Variable(initial_value=init, trainable=True)
+
+  def call(self, inputs):
+    """Computes the dot product between the input and kernel weights.
+
+    Keyword arguments:
+    inputs -- tensor encoding the visible block to be coarse-grained
+    """
+
+    return tf.einsum('tik,is->tsk', inputs, self.ws)
 
 
 class CoarseGrainer(tf.keras.Model):
-  def __init__(self, ll, num_hiddens, conv_activation='tanh', 
+  def __init__(self, ll=None, size_V=None, num_hiddens=1, conv_activation='tanh', 
               Nq=None, h_embed=False, init_rule=None, 
               relaxation_rate=0.01, min_temperature=0.05, init_temperature=2, 
               use_logits=True, use_probs=False, **extra_kwargs):
@@ -114,7 +157,9 @@ class CoarseGrainer(tf.keras.Model):
     generates the coarse-grained degrees of freedom H from V.
 
     Attributes:
-    ll (tuple of ints) -- shape of the visible block V
+    ll (tuple of ints) -- shape of the visible block V, for regular lattices !!!
+        !!! for graphs ll (int) is the topological radius around center of V and
+    size_V (int) -- is the number of edges in V defined by the radius ll
     num_hiddens (int) -- number of components of the coarse-grained variable H
     conv_activation (str) -- (nonlinear) activation function to map H (default tanh)
     Nq (int) -- number of states for a Potts degree of freedom (default None)
@@ -137,11 +182,14 @@ class CoarseGrainer(tf.keras.Model):
     self.Nq = Nq
 
     self._global_step = 0  # intialise the global iteration step in training
-
-    if len(ll) == 2: # i.e. if dimensionality (d) is 2
+    
+    if isinstance(size_V,int):
+      self.coarse_grainer = ConvGraphSingle(num_hiddens, (size_V,), init_rule)
+    elif len(ll) == 2: # i.e. if dimensionality (d) is 2
       self.coarse_grainer = Conv2DSingle(num_hiddens, ll, init_rule)
     elif len(ll) == 3: # if d=3
-      self.coarse_grainer = Conv3DSingle(num_hiddens, ll)
+      self.coarse_grainer = Conv3DSingle(num_hiddens, ll, init_rule)
+    
       
     if h_embed:  
       # sample pseudo-discrete coarse-grained variable using Gumbel-softmax trick
