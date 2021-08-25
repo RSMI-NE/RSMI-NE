@@ -64,7 +64,7 @@ class Conv2DSingle(tfkl.Layer):
     TODO: Debug handling of multi-component degrees of freedom.
     Might need to make changes in build_dataset.py and cg_optimisers.py!
     TODO: Introduce a parameter to control the number of components:
-    say, dim_visible?
+    say, visible_dim(?)
     
     Keyword arguments:
     inputs -- tensor encoding the visible block (V) to be coarse-grained
@@ -109,6 +109,7 @@ class Conv3DSingle(tfkl.Layer):
     """
 
     return tf.einsum('tijkl,ijks->tsl', inputs, self.ws)
+
     
 class ConvGraphSingle(tfkl.Layer):
   """Custom convolution layer to produce the (stochastic) coarse-graining map

@@ -105,7 +105,7 @@ def save_RSMIdat(data_params, V, E):
     return RSMIdat
 
 
-def partition_x(x, index, L_B, ll, cap=None):
+def partition_x(x: np.ndarray, index, L_B: int, ll, cap: int=None):
     """Partitions a sample configuration into a visible block
     and an annular environment separated by a buffer. 
     Assumes a standard regular lattice e.g. square.
@@ -119,6 +119,8 @@ def partition_x(x, index, L_B, ll, cap=None):
     ll (tuple of int) -- shape of the visible block V
     cap (int) -- linear size of the finite subsystem capped from x
     """
+
+    #x = np.squeeze(x)
 
     dim = len(index)
     L = x.shape[0]
@@ -224,6 +226,7 @@ def partition_x_graph(x,GV_edges,GE_edges):
     
     return v, e
 
+
 def get_V(x, index, ll):
     """Get the region to be coarse-grained.
     TODO: address the multi-component case.
@@ -237,13 +240,14 @@ def get_V(x, index, ll):
     dim = len(index)
     L = x.shape[0]
 
-    x_ext = np.pad(x, [(0, ll[d]) for d in range(dim)], 'wrap')
+    x_ext = np.pad(x, [(0, ll[d]) for d in range(dim)] + [(0, 0)], 'wrap')
 
     visible_slice = tuple([slice(index[d], index[d]+ll[d])
-                           for d in range(dim)])
+                           for d in range(dim)] + slice(0, -1))
     v = x_ext[visible_slice]
 
     return v.flatten()
+
     
 def get_V_graph(x, G, V_index, ll):
     """Get the region to be coarse-grained. Graph (networkx) version.
