@@ -106,6 +106,7 @@ def save_RSMIdat(data_params, V, E):
 def partition_x(x, index, L_B, ll, cap=None):
     """Partitions a sample configuration into a visible block
     and an annular environment separated by a buffer. 
+    TODO: address the multi-component case.
 
     Keyword arguments:
     x -- a sample configuration
@@ -155,6 +156,7 @@ def partition_x(x, index, L_B, ll, cap=None):
 
 def get_V(x, index, ll):
     """Get the region to be coarse-grained.
+    TODO: address the multi-component case.
 
     Keyword arguments:
     x -- a sample configuration
@@ -176,6 +178,7 @@ def get_V(x, index, ll):
 
 def get_E(x, index, L_B, ll, cap=None):
     """Get the environment E of the coarse-grained region.
+    TODO: address the multi-component case.
 
     Keyword arguments:
     x -- a sample configuration
@@ -306,6 +309,7 @@ class dataset():
 
     def gen_Vs(self, indices, ll, shape=None):
         """Generator for for the visible block to be coarse-grained.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -340,6 +344,7 @@ class dataset():
 
     def gen_Es(self, indices, ll, buffer_size=2, cap=None, shape=None):
         """Generator for for the environment E of the visible block.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -376,6 +381,7 @@ class dataset():
 
     def gen_rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
         """Generator for for the visible block V and its environment E.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         index (int) -- index of the upper-left corner site of V
@@ -409,6 +415,7 @@ class dataset():
 
     def rsmi_data(self, indices, ll, buffer_size=2, cap=None, shape=None):
         """Returns data for the visible block V and its environment E.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -459,6 +466,7 @@ class dataset():
         to generate many from a given dataset (V,E) samples.
         Note: Using this might be dangerous in the absence of 
         translation invariance.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         stride = int

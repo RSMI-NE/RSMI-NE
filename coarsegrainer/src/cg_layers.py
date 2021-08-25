@@ -25,11 +25,9 @@ tfp = tfp.layers
 class Conv2DSingle(tfkl.Layer):
   """Custom convolution layer to produce the (stochastic) coarse-graining map
   from 2(or 1)-d visible degrees of freedom.
-
-  TODO: Handle multicomponent original degrees of freedom.
   """
 
-  def __init__(self, hidden_dim, input_shape=(2, 2), init_rule=None):
+  def __init__(self, hidden_dim: int, visible_dim: int = 1, input_shape=(2, 2), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -45,18 +43,33 @@ class Conv2DSingle(tfkl.Layer):
       init = init_rule
     else:
       w_init = tf.random_normal_initializer()
-      init = w_init(shape=input_shape+(hidden_dim,), dtype='float32')
-      
+      init = w_init(shape=input_shape+(visible_dim,) +
+                    (hidden_dim,), dtype='float32')
+
     self.ws = tf.Variable(initial_value=init, trainable=True)
 
   def call(self, inputs):
     """Computes the dot product between the input and kernel weights.
+    Currently it does not mix the entries in the one-hot encoding dimension.
 
+    The indices represent the following
+    :t: sample number
+    :ij: 2D spatial location in the configuration
+    :a: component of the original degrees of freedom (visible_dim)
+    :b: component of the coarse-grained degrees of freedom (hidden_dim)
+    :d: one-hot encoding direction
+
+    TODO: Debug the one-hot encoding.
+    TODO: Debug handling of multi-component degrees of freedom.
+    Might need to make changes in build_dataset.py and cg_optimisers.py!
+    TODO: Introduce a parameter to control the number of components:
+    say, dim_visible?
+    
     Keyword arguments:
-    inputs -- tensor encoding the visible block to be coarse-grained
+    inputs -- tensor encoding the visible block (V) to be coarse-grained
     """
 
-    return tf.einsum('tijk,ijs->tsk', inputs, self.ws)
+    return tf.einsum('tijad,ijab->tbd', inputs, self.ws)
 
 
 class Conv3DSingle(tfkl.Layer):
