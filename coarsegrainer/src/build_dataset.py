@@ -5,7 +5,7 @@ to calculate the real-space mutual information I_Lambda(h:e).
 Separate versions for regular lattices, and arbitrary graphs.
 
 Author: Doruk Efe Gökmen, Maciej Koch-Janusz
-Date: 08/04/2021
+Date: 26/08/2021
 """
 
 import os
@@ -299,10 +299,11 @@ class dataset():
         configurations (np.array) -- input configurations pre-loaded into memory 
                                         (default None)
         visible_dim (int) -- number of components of a vector degree of freedom 
-                                (default 1, i.e. scalar)
+                                (default None or 1, i.e. scalar)
         N_samples (int) -- total number of sample configurations (default None)
         J (float) -- Ising coupling constant (default None)
-        Nq (int) -- number of states for a Potts degree of freedom (default None)
+        Nq (int) -- number of states for a Potts degree of freedom 
+                    (default None or 2, i.e. binary variable, e.g. spin-1/2)
         T (float) -- temperature of the system
         basedir (str) -- directory name of the input data
         verbose (bool)
@@ -311,9 +312,9 @@ class dataset():
         self.model = model
         self.J = J
         if Nq is None:
-            self.Nq = 1 # binary valued variable (e.g. spin-1/2)
+            self.Nq = 2 # binary valued variable (e.g. spin-1/2)
         else:
-            self.Nq = Nq # number of states for a Potts variable
+            self.Nq = Nq # number of states for a discrete (e.g. Potts) variable
         self.T = T
         self.L = L 
         self.dimension = dimension 
@@ -406,7 +407,7 @@ class dataset():
             config = self.configurations[t].reshape(shape)
 
             yield array2tensor(get_V(config, index, ll).reshape(ll + (self.visible_dim, ) 
-                                                                   + (self.Nq, )))
+                                                                   + (self.Nq-1, )))
                                             # additional dimension for one-hot encoding
 
         if self.verbose:
@@ -503,7 +504,7 @@ class dataset():
         for t in range(self.N_configs):
             v, e = partition_x(configs[t], index, buffer_size, ll, cap=cap)
 
-            V = array2tensor(v.reshape(ll + (self.visible_dim, ) + (self.Nq, )))
+            V = array2tensor(v.reshape(ll + (self.visible_dim, ) + (self.Nq-1, )))
                                             # additional dimension for one-hot encoding
             E = tf.cast(e, tf.float32)
 
@@ -553,7 +554,7 @@ class dataset():
             Es.append(e)
         
         # additional dimension for one-hot encoding
-        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (self.visible_dim, ) + (self.Nq, ))
+        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (self.visible_dim, ) + (self.Nq-1, ))
 
         if self.verbose:
             print('RSMI dataset prepared.')
@@ -578,7 +579,7 @@ class dataset():
         Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
         
         # additional dimension for one-hot encoding (used for more conv channels, only Vs)
-        Vs = np.reshape(Vs, np.shape(Vs) + (self.Nq, ))
+        Vs = np.reshape(Vs, np.shape(Vs) + (self.Nq-1, ))
 
         if self.verbose:
             print('RSMI dataset prepared.')

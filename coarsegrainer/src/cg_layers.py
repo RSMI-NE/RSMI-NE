@@ -8,7 +8,7 @@ ConvGraphSingle -- Convolves V with Λ for systems defined on a (networkx) graph
 CoarseGrainer -- Stacks convolution and embedding layers and maps V to H
 
 Author: Doruk Efe Gökmen, Maciej Koch-Janusz
-Date: 11/01/2021
+Date: 26/08/2021
 """
 
 
@@ -80,7 +80,7 @@ class Conv3DSingle(tfkl.Layer):
   TODO: Handle multicomponent original degrees of freedom.
   """
 
-  def __init__(self, hidden_dim, input_shape=(2, 2, 2), init_rule=None):
+  def __init__(self, hidden_dim: int, input_shape: tuple=(2, 2, 2), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -119,7 +119,7 @@ class ConvGraphSingle(tfkl.Layer):
   The input_shape is (#edges in V,)
   """
 
-  def __init__(self, hidden_dim, input_shape=(2,), init_rule=None):
+  def __init__(self, hidden_dim: int, input_shape: tuple=(2,), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -150,12 +150,15 @@ class ConvGraphSingle(tfkl.Layer):
 
 
 class CoarseGrainer(tf.keras.Model):
-  def __init__(self, ll=None, size_V=None, num_hiddens=1, conv_activation='tanh', 
-              Nq=None, h_embed=False, init_rule=None, 
-              relaxation_rate=0.01, min_temperature=0.05, init_temperature=2, 
-              use_logits=True, use_probs=False, **extra_kwargs):
+  def __init__(self, ll: tuple=None, size_V: int=None, num_hiddens: int=1, 
+              conv_activation='tanh', Nq=None, h_embed: bool=False, 
+              init_rule=None, relaxation_rate: float=0.01, 
+              min_temperature: float=0.05, init_temperature: float=2, 
+              use_logits: bool=True, use_probs: bool=False, **extra_kwargs):
     """Stacked network representing the variational ansatz that
     generates the coarse-grained degrees of freedom H from V.
+
+    Note that for the cases where Nq is None, the output variable is flattened.
 
     Attributes:
     ll (tuple of ints) -- shape of the visible block V, for regular lattices !!!
@@ -184,7 +187,7 @@ class CoarseGrainer(tf.keras.Model):
 
     self._global_step = 0  # intialise the global iteration step in training
     
-    if isinstance(size_V,int):
+    if isinstance(size_V, int):
       self.coarse_grainer = ConvGraphSingle(num_hiddens, (size_V,), init_rule)
     elif len(ll) == 2: # i.e. if dimensionality (d) is 2
       self.coarse_grainer = Conv2DSingle(num_hiddens, ll, init_rule)
@@ -228,11 +231,16 @@ class CoarseGrainer(tf.keras.Model):
                                          tfkl.Flatten(), 
                                          self.embedder])
         
-      else: # sample Nq-valued discrete (categorical) variables using CNN kernel
+      else: # Sample Nq-valued discrete (categorical) variables using CNN kernel.
+        # In fact, we use Nq - 1 as the number of possible states of the discrete variable
+        # since the Nq'th state is redundant.
+
         # TODO: flattening the convolutional output messes up the one-hot encoding direction.
         # We actually should not flatten the output, but instead preserve the one-hot encoding!
+        # But the current implementation takes flat vectors for MI estimation.
+        # TODO: We should generalise it to address this.
 
-        # We specify the one-hot encoding direction inside the softmax 
+        # We specify the one-hot encoding axis inside the softmax 
         # (i.e. axis=1) for multi-component coarse-grained variables.
         # TODO: Debug this.
 

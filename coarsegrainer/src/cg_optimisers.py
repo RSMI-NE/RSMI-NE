@@ -34,7 +34,7 @@ from VBMI_bounds import lowerbounds
 SeparableCritic = VBMI_estimators.SeparableCritic
 
 
-def RSMI_estimate(mis, ema_span=5000):
+def RSMI_estimate(mis: np.ndarray, ema_span: int=5000) -> float:
   """Exponential moving average  with span ema_span for the series of mi estimates.
 
   Keyword arguments:
@@ -45,11 +45,11 @@ def RSMI_estimate(mis, ema_span=5000):
   return pd.Series(mis).ewm(span=ema_span).mean().tolist()[-1]
 
 
-def train_RSMI_optimiser(CG_params, critic_params, opt_params, 
-                         data_params, bound='infonce', coarse_grain: bool=True, 
-                         init_rule=None, optimizer=None, use_GPU: bool=False, 
+def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict, 
+                         data_params: dict, bound: str='infonce', 
+                         coarse_grain: bool=True, init_rule=None, optimizer=None, 
                          index=None, buffer_size=None, env_size=None,
-                         load_data_from_generators: bool=False,
+                         load_data_from_generators: bool=False, use_GPU: bool=False, 
                          load_data_from_disk: bool=False, use_wandb: bool=False,
                          E=None, V=None, verbose=True, init_steps=100, **kwargs):
   """Main training loop for maximisation of RSMI [I(H:E)] 
