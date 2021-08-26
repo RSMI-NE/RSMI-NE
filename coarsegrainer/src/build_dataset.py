@@ -310,13 +310,14 @@ class dataset():
 
         self.model = model
         self.J = J
-        if self.Nq is None:
+        if Nq is None:
             self.Nq = 1 # binary valued variable (e.g. spin-1/2)
         else:
             self.Nq = Nq # number of states for a Potts variable
         self.T = T
         self.L = L 
         self.dimension = dimension 
+        self.visible_dim = visible_dim
         self.N_samples = N_samples
         self.N_configs = self.N_samples
         self.lattice_type = lattice_type
@@ -552,7 +553,7 @@ class dataset():
             Es.append(e)
         
         # additional dimension for one-hot encoding
-        Vs = np.reshape(Vs, (Vs.shape[0],) + ll + (self.visible_dim, ) + (self.Nq, ))
+        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (self.visible_dim, ) + (self.Nq, ))
 
         if self.verbose:
             print('RSMI dataset prepared.')
