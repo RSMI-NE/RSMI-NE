@@ -63,8 +63,6 @@ class Conv2DSingle(tfkl.Layer):
     TODO: Debug the one-hot encoding.
     TODO: Debug handling of multi-component degrees of freedom.
     Might need to make changes in build_dataset.py and cg_optimisers.py!
-    TODO: Introduce a parameter to control the number of components:
-    say, visible_dim(?)
     
     Keyword arguments:
     inputs -- tensor encoding the visible block (V) to be coarse-grained
