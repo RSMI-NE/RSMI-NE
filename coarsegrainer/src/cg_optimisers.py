@@ -17,7 +17,6 @@ import warnings
 import math
 import numpy as np 
 import pandas as pd
-from tqdm.autonotebook import tqdm  
 import tensorflow as tf
 tfkl = tf.keras.layers
 
@@ -51,7 +50,8 @@ def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict,
                          index=None, buffer_size=None, env_size=None,
                          load_data_from_generators: bool=False, use_GPU: bool=False, 
                          load_data_from_disk: bool=False, use_wandb: bool=False,
-                         E=None, V=None, verbose=True, init_steps=100, **kwargs):
+                         E=None, V=None, verbose=True, init_steps=100, 
+                         use_notebook=None, **kwargs):
   """Main training loop for maximisation of RSMI [I(H:E)] 
   for coarse-graining optimisation.
 
@@ -78,7 +78,13 @@ def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict,
   optimizer -- choice for stochastic gradient descent optimiser (default None: Adam)
   use_GPU (bool) -- switch for using a GPU device (default False)
   verbose (bool) -- switch verbose output (default True)
+  use_notebook (bool) -- switch to Jupyter notebook version of tqdm (default None)
   """
+
+  if use_notebook:
+    from tqdm.notebook import tqdm
+  else:
+    from tqdm.autonotebook import tqdm
 
   # prepare the dataset using tf.data api
   if load_data_from_disk:
