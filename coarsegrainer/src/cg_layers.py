@@ -28,7 +28,7 @@ class Conv2DSingle(tfkl.Layer):
   from 2(or 1)-d visible degrees of freedom.
   """
 
-  def __init__(self, hidden_dim: int, visible_dim: int = 1, input_shape=(2, 2), init_rule=None):
+  def __init__(self, hidden_dim: int, visible_dim: int=1, input_shape=(2, 2), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -44,8 +44,8 @@ class Conv2DSingle(tfkl.Layer):
       init = init_rule
     else:
       w_init = tf.random_normal_initializer()
-      init = w_init(shape=input_shape+(visible_dim,) +
-                    (hidden_dim,), dtype='float32')
+      init = w_init(shape=input_shape + (visible_dim,)
+                    + (hidden_dim,), dtype='float32')
 
     self.ws = tf.Variable(initial_value=init, trainable=True)
 
@@ -78,7 +78,8 @@ class Conv3DSingle(tfkl.Layer):
   TODO: Handle multicomponent original degrees of freedom.
   """
 
-  def __init__(self, hidden_dim: int, input_shape: tuple=(2, 2, 2), init_rule=None):
+  def __init__(self, hidden_dim: int, visible_dim: int=1,
+              input_shape: tuple=(2, 2, 2), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -117,7 +118,8 @@ class ConvGraphSingle(tfkl.Layer):
   The input_shape is (#edges in V,)
   """
 
-  def __init__(self, hidden_dim: int, input_shape: tuple=(2,), init_rule=None):
+  def __init__(self, hidden_dim: int,  visible_dim: int=1,
+                input_shape: tuple=(2,), init_rule=None):
     """Constructs the convolutional net.
     
     Attributes:
@@ -148,7 +150,8 @@ class ConvGraphSingle(tfkl.Layer):
 
 
 class CoarseGrainer(tf.keras.Model):
-  def __init__(self, ll: tuple=None, size_V: int=None, num_hiddens: int=1, 
+  def __init__(self, ll: tuple=None, size_V: int=None, 
+              hidden_dim: int=1, visible_dim: int=1,
               conv_activation='tanh', Nq=None, h_embed: bool=False, 
               init_rule=None, relaxation_rate: float=0.01, 
               min_temperature: float=0.05, init_temperature: float=2, 
@@ -162,7 +165,8 @@ class CoarseGrainer(tf.keras.Model):
     ll (tuple of ints) -- shape of the visible block V, for regular lattices !!!
         !!! for graphs ll (int) is the topological radius around center of V and
     size_V (int) -- is the number of edges in V defined by the radius ll
-    num_hiddens (int) -- number of components of the coarse-grained variable H
+    hidden_dim (int) -- number of components of the coarse-grained variable H
+    visible_dim (int) -- number of components of the original degrees of freedom
     conv_activation (str) -- (nonlinear) activation function to map H (default tanh)
     Nq (int) -- number of states for a Potts degree of freedom (default None)
     h_embed (bool) -- embed H into a (pseudo) discrete valued variable (default False)
@@ -186,11 +190,14 @@ class CoarseGrainer(tf.keras.Model):
     self._global_step = 0  # intialise the global iteration step in training
     
     if isinstance(size_V, int):
-      self.coarse_grainer = ConvGraphSingle(num_hiddens, (size_V,), init_rule)
+      self.coarse_grainer = ConvGraphSingle(hidden_dim, visible_dim=visible_dim,
+                                input_shape=(size_V,), init_rule=init_rule)
     elif len(ll) == 2: # i.e. if dimensionality (d) is 2
-      self.coarse_grainer = Conv2DSingle(num_hiddens, ll, init_rule)
+      self.coarse_grainer = Conv2DSingle(hidden_dim, visible_dim=visible_dim, 
+                                          input_shape=ll, init_rule=init_rule)
     elif len(ll) == 3: # if d=3
-      self.coarse_grainer = Conv3DSingle(num_hiddens, ll, init_rule)
+      self.coarse_grainer = Conv3DSingle(hidden_dim, visible_dim=visible_dim,
+                              input_shape=ll, init_rule=init_rule)
     
       
     if h_embed:  
