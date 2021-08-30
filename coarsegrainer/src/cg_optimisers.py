@@ -11,10 +11,7 @@ Author: Doruk Efe Gökmen
 Date: 08/04/2021
 """
 
-import os
-import sys
-import warnings
-import math
+import os, sys, json, math, warnings
 import numpy as np 
 import pandas as pd
 from tqdm.autonotebook import tqdm  
@@ -45,9 +42,10 @@ def RSMI_estimate(mis, ema_span=5000):
   return pd.Series(mis).ewm(span=ema_span).mean().tolist()[-1]
 
 
-def train_RSMI_optimiser(CG_params, critic_params, opt_params, 
-                         data_params, bound='infonce', coarse_grain: bool=True, 
-                         init_rule=None, optimizer=None, use_GPU: bool=False, 
+def train_RSMI_optimiser(data_params: dict, CG_params: dict=None, 
+                         critic_params: dict=None, opt_params: dict=None, 
+                         bound: str='infonce', coarse_grain: bool=True, 
+                         init_rule=None, use_GPU: bool=False, 
                          index=None, buffer_size=None, env_size=None,
                          load_data_from_generators: bool=False,
                          load_data_from_disk: bool=False, use_wandb: bool=False,
@@ -73,10 +71,25 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   coarse_grain (bool) -- switch for coarse-graining (default True)
   init_rule -- initialisation for the coarse-graining rule (or initial conditions of Λ) 
     (default None)
-  optimizer -- choice for stochastic gradient descent optimiser (default None: Adam)
   use_GPU (bool) -- switch for using a GPU device (default False)
   verbose (bool) -- switch verbose output (default True)
   """
+
+  # set the parameters
+  with open(os.path.join(os.pardir, "input", "params.json")) as f:
+    all_params = json.load(f)
+  all_params['CG_params']['ll'] = tuple(all_params['CG_params']['ll'])
+
+  if CG_params is not None:
+    all_params['CG_params'].update(CG_params)
+  if critic_params is not None:
+    all_params['critic_params'].update(critic_params)
+  if opt_params is not None:
+    all_params['opt_params'].update(opt_params)
+
+  CG_params = all_params['CG_params']
+  critic_params = all_params['critic_params']  
+  opt_params = all_params['opt_params']
 
   # prepare the dataset using tf.data api
   if load_data_from_disk:
@@ -103,6 +116,7 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   CG = CoarseGrainer(init_rule=init_rule, **CG_params)  
   f_ansatz = SeparableCritic(**critic_params)   
 
+  optimizer = opt_params['optimizer']
   if optimizer == None:
     # set optimiser as adam with given learning rate
     opt = tf.keras.optimizers.Adam(
