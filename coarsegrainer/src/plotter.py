@@ -185,7 +185,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
     matplotlib.rcParams.update(params)
 
     epochs = opt_params['iterations']
-    num_hiddens = CG_params['num_hiddens']
+    num_hiddens = CG_params['hidden_dim']
     ll = CG_params['ll']
 
     # initiate width ratios for colorbar versus the filter weight density plots
