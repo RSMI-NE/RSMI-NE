@@ -59,7 +59,7 @@ If you use RSMI-NE in your work, for the moment please cite our arxiv preprints 
 
 ```latex
 @misc{gökmen2021statistical,
-      title={Statistical physics through the lens of real-space mutual information}, 
+      title={Statistical Physics through the Lens of Real-Space Mutual Information}, 
       author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
       year={2021},
       eprint={2101.11633},
@@ -68,7 +68,7 @@ If you use RSMI-NE in your work, for the moment please cite our arxiv preprints 
 }
 
 @misc{gökmen2021phase,
-      title={Phase diagrams with real-space mutual information neural estimation}, 
+      title={Symmetries and phase diagrams with real-space mutual information neural estimation}, 
       author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
       year={2021},
       eprint={2103.16887},
