@@ -161,13 +161,13 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
                         cmap='coolwarm', save=False):
 
     matplotlib.style.use('classic')
-    plt.rc('text', usetex=True)
+    plt.rc('text', usetex=False) #True
     params = {
-        'text.latex.preamble': r'\usepackage{tgheros}'    # helvetica font
-                           + r'\usepackage{sansmath}'   # math-font matching  helvetica
-                           + r'\sansmath'                # actually tell tex to use it!
-                           + r'\usepackage{siunitx}'    # micro symbols
-                           + r'\sisetup{detect-all}',    # force siunitx to use the fonts
+        #'text.latex.preamble': r'\usepackage{tgheros}'    # helvetica font
+        #                   + r'\usepackage{sansmath}'   # math-font matching  helvetica
+        #                   + r'\sansmath'                # actually tell tex to use it!
+        #                   + r'\usepackage{siunitx}'    # micro symbols
+        #                   + r'\sisetup{detect-all}',    # force siunitx to use the fonts
         'image.interpolation': interpolation,
         'image.cmap': cmap,
         'axes.grid': False,
@@ -178,7 +178,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
         'legend.fontsize': fontsize,  # was 10
         'xtick.labelsize': fontsize,
         'ytick.labelsize': fontsize,
-        'text.usetex': True,
+        'text.usetex': False,
         'figure.figsize': figsize,
         'font.family': font_family,
         'figure.facecolor': 'white',
@@ -253,15 +253,15 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
             plt.setp(axf.get_xticklabels(), visible=False)
             plt.setp(axf.get_yticklabels(), visible=False)
 
-            if t != 0:
-                plt.setp(axf.get_yticklabels(), visible=False)
-            else:
-                if isinstance(filter_index, int):
-                    axf.set_ylabel("$\\Lambda_%i$" % (filter_index+1))
-                else:
-                    axf.set_ylabel('$\\Lambda$')
+            #if t != 0:
+            #    plt.setp(axf.get_yticklabels(), visible=False)
+            #else:
+            #    if isinstance(filter_index, int):
+            #        axf.set_ylabel("$\\Lambda_%i$" % (filter_index+1))
+            #    else:
+            #        axf.set_ylabel('$\\Lambda$')
 
-                axf.xaxis.set_label_position('top')
+            #    axf.xaxis.set_label_position('top')
 
             ii += 1
 

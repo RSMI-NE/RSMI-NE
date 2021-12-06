@@ -154,6 +154,32 @@ def partition_x(x, index, L_B, ll, cap=None):
     v = v.flatten()
 
     return v, e
+    
+
+def partition_noneq1(x, index, L_B, ll, cap=None):
+    """Partitions a sample configuration into a visible block
+    and an annular environment separated by a buffer. 
+    Assumes a standard regular lattice e.g. square.
+
+    Keyword arguments:
+    x -- a sample configuration
+    index (tuple of int) -- index of upper-left corner site of the visible block V
+    L_B (int) -- width of the buffer
+    ll (tuple of int) -- shape of the visible block V
+    cap (int) -- linear size of the finite subsystem capped from x
+    """
+
+    # get environment
+    environment_slice = tuple([slice(index[0]+ll[0]+L_B, index[0]+cap),slice(None,None,None)])
+    e = x[environment_slice]
+    e = e.flatten()
+
+    # get visible block
+    visible_slice = tuple([slice(index[0], index[0]+ll[0]),slice(None,None,None)])
+    v = x[visible_slice]
+    v = v.flatten()
+
+    return v, e
 
 
 def partition_x_graph(x,GV_edges,GE_edges):
@@ -276,7 +302,7 @@ class dataset():
     """
 
     def __init__(self, model, L, lattice_type, dimension=2, G = None, configurations = None, N_samples=None, 
-                J=None, Nq=None, T=None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
+                J=None, Nq=None, T=None, Time_dim = None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
         """ Constructs all necessary attributes of the physical system.        
         
         Attributes:
@@ -298,6 +324,7 @@ class dataset():
         self.J = J
         self.Nq = Nq #number of states for a Potts variable
         self.T = T
+        self.Time_dim = Time_dim # optional: size of the system in temporal direction
         self.L = L 
         self.dimension = dimension 
         self.N_samples = N_samples
@@ -525,6 +552,52 @@ class dataset():
 
         return array2tensor(Vs), array2tensor(Es)
         
+    def rsmi_data_noneq1(self, indices, ll, buffer_size=2, cap=None, shape=None):
+        """Returns data for the visible block V and its environment E.
+
+        Keyword arguments:
+        indices (list of tuples of int) -- index of the upper-left corner site of V
+        ll (tuple of int) -- shape of V
+        buffer_size (int) -- buffer width (default 2)
+        cap (int) -- subsystem size<L to cap the environment 
+            (default None: environment is the rest of the system)
+        shape (tuple of int) -- shape of the configurations
+            (default None: assumes square system, i.e. shape=(L,L))
+        """
+
+        def get_index(indices, t):
+            if type(indices) is list:
+                return indices[t]
+            else:
+                return indices
+
+
+        if self.verbose:
+            print('Preparing the RSMI dataset...')
+
+        if shape is None:
+            shape = (self.Time_dim,self.L)
+
+        configs = self.configurations.reshape((len(self.configurations), ) + shape)
+
+        Vs = []
+        Es = []
+
+        for t in range(self.N_configs):
+            index = get_index(indices, t)
+
+            v, e = partition_noneq1(configs[t], index, buffer_size, ll, cap=cap)
+            Vs.append(v)
+            Es.append(e)
+        
+        # additional dimension for one-hot encoding
+        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (1,)) 
+
+        if self.verbose:
+            print('RSMI dataset prepared.')
+
+        return array2tensor(Vs), array2tensor(Es)
+        
 
         
     def rsmi_data_graph(self, GV_edges,GE_edges):
@@ -590,4 +663,43 @@ class dataset():
                 Vs = tf.concat([Vs, Vs_], 0)
                 Es = tf.concat([Es, Es_], 0)
 
+        return Vs, Es
+        
+        
+        
+    def chop_data_noneq1(self, stride, ll, buffer_size, cap=None, shape=None, burn_in_time = 50):
+        """Chops real-space configurations according to some stride 
+        to generate many from a given dataset (V,E) samples.
+        Note: Using this might be dangerous in the absence of 
+        translation invariance.
+
+        Keyword arguments:
+        stride = int
+        ll (tuple of int) -- shape of V
+        buffer_size (int) -- buffer width (default 2)
+        cap (int) -- subsystem size<L to cap the environment 
+            (default None: environment is the rest of the system)
+        shape (tuple of int) -- shape of the configurations
+            (default None: assumes square system, i.e. shape=(L,L))
+        """
+        
+        if cap is None:
+        	cap = self.Time_dim
+        
+        offset = cap - ll[0]
+        lin_size_time = self.Time_dim - burn_in_time - offset
+        
+        for i,index in tqdm(enumerate(itertools.product(*[range(0,lin_size_time,stride),range(0,1,1)]))):
+            if i==0:
+                index_0 = (burn_in_time,0)
+                Vs, Es = self.rsmi_data_noneq1(tuple(index_0), ll, buffer_size=buffer_size, cap=cap, shape=shape)
+            else:
+                index += index_0
+                
+                Vs_, Es_ = self.rsmi_data_noneq1(tuple(index), ll, buffer_size=buffer_size, cap=cap, shape=shape)
+
+                Vs = tf.concat([Vs, Vs_], 0)
+                Es = tf.concat([Es, Es_], 0)
+            
+        
         return Vs, Es
