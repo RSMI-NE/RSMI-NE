@@ -1,6 +1,6 @@
 # RSMI-NE
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 
 `RSMI-NE` is a Python package, implemented using Tensorflow, for optimising coarse-graining rules for real-space renormalisation group by maximising real-space mutual information. 
 
@@ -11,7 +11,7 @@
 
 ## Overview
 
-`RSMI-NE` employs state-of-the-art results for estimating mutual information (MI) by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), [arXiv:1905.06922v1](https://arxiv.org/abs/1905.06922)]. This allows it to overcome the severe limitations of the initial proposals for constructing real-space RG transformations by MI-maximization in [M. Koch-Janusz and Z. Ringel, [Nature Phys. 14, 578-582 (2018)](https://doi.org/10.1038/s41567-018-0081-4), P.M. Lenggenhager et al., [Phys.Rev. X 10, 011037 (2020)](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.10.011037)], and to reconstruct the relevant operators of the theory, as detailed in the manuscripts accompanying this code [D.E. Gökmen, Z. Ringel, S.D. Huber and M. Koch-Janusz (2021), [arXiv:2101.11633](https://arxiv.org/abs/2101.11633) and [arXiv:2103.16887](https://arxiv.org/abs/2103.16887)].
+`RSMI-NE` employs state-of-the-art results for estimating mutual information (MI) by maximising its lower-bounds parametrised by deep neural networks [Poole et al. (2019), [arXiv:1905.06922v1](https://arxiv.org/abs/1905.06922)]. This allows it to overcome the severe limitations of the initial proposals for constructing real-space RG transformations by MI-maximization in [M. Koch-Janusz and Z. Ringel, [Nature Phys. 14, 578-582 (2018)](https://doi.org/10.1038/s41567-018-0081-4), P.M. Lenggenhager et al., [Phys.Rev. X 10, 011037 (2020)](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.10.011037)], and to reconstruct the relevant operators of the theory, as detailed in the manuscripts accompanying this code [D.E. Gökmen, Z. Ringel, S.D. Huber and M. Koch-Janusz (2021), Phys. Rev. Lett. **127**, 240603 (2021)](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.127.240603) and [Phys. Rev. E **104**, 064106 (2021)](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.104.064106).
 
 ## System requirements
 
@@ -46,7 +46,7 @@ Clone `RSMI-NE` from Github and install its dependencies into a virtual environm
 ```bash
 git clone https://github.com/RSMI-NE/RSMI-NE
 cd RSMI-NE
-./install/install.sh
+./install.sh
 ```
 
 ## Getting started
@@ -55,25 +55,36 @@ Jupyter notebooks demonstrating the basic usage in simple examples are provided 
 
 ## Citation
 
-If you use RSMI-NE in your work, for the moment please cite our arxiv preprints [arXiv:2101.11633](https://arxiv.org/abs/2101.11633) and [arXiv:2103.16887](https://arxiv.org/abs/2103.16887):
+If you use RSMI-NE in your work, please cite our publications [Phys. Rev. Lett. **127**, 240603 (2021)](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.127.240603) and [Phys. Rev. E **104**, 064106 (2021)](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.104.064106):
 
 ```latex
-@misc{gökmen2021statistical,
-      title={Statistical physics through the lens of real-space mutual information}, 
-      author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
-      year={2021},
-      eprint={2101.11633},
-      archivePrefix={arXiv},
-      primaryClass={cond-mat.stat-mech}
+@article{PhysRevLett.127.240603,
+  title = {Statistical Physics through the Lens of Real-Space Mutual Information},
+  author = {G\"okmen, Doruk Efe and Ringel, Zohar and Huber, Sebastian D. and Koch-Janusz, Maciej},
+  journal = {Phys. Rev. Lett.},
+  volume = {127},
+  issue = {24},
+  pages = {240603},
+  numpages = {7},
+  year = {2021},
+  month = {Dec},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevLett.127.240603},
+  url = {https://link.aps.org/doi/10.1103/PhysRevLett.127.240603}
 }
 
-@misc{gökmen2021phase,
-      title={Phase diagrams with real-space mutual information neural estimation}, 
-      author={Doruk Efe Gökmen and Zohar Ringel and Sebastian D. Huber and Maciej Koch-Janusz},
-      year={2021},
-      eprint={2103.16887},
-      archivePrefix={arXiv},
-      primaryClass={cond-mat.stat-mech}
+@article{PhysRevE.104.064106,
+  title = {Symmetries and phase diagrams with real-space mutual information neural estimation},
+  author = {G\"okmen, Doruk Efe and Ringel, Zohar and Huber, Sebastian D. and Koch-Janusz, Maciej},
+  journal = {Phys. Rev. E},
+  volume = {104},
+  issue = {6},
+  pages = {064106},
+  numpages = {17},
+  year = {2021},
+  month = {Dec},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevE.104.064106},
+  url = {https://link.aps.org/doi/10.1103/PhysRevE.104.064106}
 }
 ```
-
