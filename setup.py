@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='rsmine',
-    version='0.1.1rc1',
+    version='0.0.2rc1',
     packages=find_packages(include=['rsmine', 'rsmine.*']),
     author='Doruk Efe Gökmen',
     author_email='dgoekmen@ethz.ch',
