@@ -2,6 +2,9 @@
 *.DS_Store
 *.ipynb_checkpoints
 *__pycache__
+*.egg-info
+build
+dist
 tensorflow_macos_venv
 bin
 data
@@ -11,3 +14,4 @@ rsmine/coarsegrainer/src/wandb/*
 
 /mc_dimer/input/run_dimer_daint_demo
 mc_dimer/input/run_dimer_daint_demo.sh
+
