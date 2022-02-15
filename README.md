@@ -51,7 +51,7 @@ cd RSMI-NE
 
 ## Getting started
 
-Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/tree/main/coarsegrainer/examples>.
+Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/examples>.
 
 ## Citation
 
