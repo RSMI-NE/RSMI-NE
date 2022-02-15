@@ -9,12 +9,12 @@ Authors: Doruk Efe Gökmen
 Date: 04/08/2020
 """
 
-from tqdm.autonotebook import tqdm
+from tqdm.notebook import tqdm
 import numpy as np
 import tensorflow as tf
 
-from VBMI_bounds import lowerbounds
-from critics import SeparableCritic
+from .VBMI_bounds import lowerbounds
+from .critics import SeparableCritic
 
 
 def train_estimator(X, Y, critic_params, opt_params, bound='infonce'):

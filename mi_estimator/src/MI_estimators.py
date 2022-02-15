@@ -1,17 +1,17 @@
-import VBMI_estimators
+from .VBMI_estimators import train_estimator
 
 class VBMI():
     """Interface for mutual information estimation by maximising variational lower bounds.
 
-    :Author: 
-        Doruk Efe Gökmen
+    Author: Doruk Efe Gökmen
     Date: 10/01/2021
     """
     
-    def __init__(self, batch_size, layers=2, embed_dim=16, hidden_dim=64, activation='relu',
-                 iterations=600, shuffle=0, learning_rate=5e-3, bound='infonce',
-                 use_dropout: bool=False, dropout_rate: float=0.2,
-                 **kwargs):
+    def __init__(self, batch_size, input_shapes: list=[None, None],
+		layers: int=2, embed_dim: int=16, hidden_dim: int=64, 
+		activation: str='relu', iterations: int=600, shuffle: int=1, 
+		learning_rate: float=5e-3, bound: str='infonce',
+		use_dropout: bool=False, dropout_rate: float=0.2, **kwargs):
         """
         Mutual information estimation by maximising variational lower bounds 
         represented by neural network ansätze.
@@ -37,6 +37,7 @@ class VBMI():
         self.bound = bound
 
         self.critic_params = {
+			'input_shapes': input_shapes,
             'layers': layers,
             'embed_dim': embed_dim,
             'hidden_dim': hidden_dim,
@@ -59,7 +60,7 @@ class VBMI():
         x, y -- sample datasets
         """
 
-        return VBMI_estimators.train_estimator(x, y, self.critic_params, self.opt_params, self.bound)
+        return train_estimator(x, y, self.critic_params, self.opt_params, self.bound)
 
     def DV(self, x, y):
         """ Returns the DV estimate for I(X:Y).
@@ -68,6 +69,6 @@ class VBMI():
         x, y -- sample datasets
         """
 
-        return VBMI_estimators.train_estimator(x, y, self.critic_params, self.opt_params, self.bound)
+        return train_estimator(x, y, self.critic_params, self.opt_params, self.bound)
 
 
