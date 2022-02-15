@@ -18,7 +18,6 @@ setup(
         "Bug Tracker": "https://github.com/RSMI-NE/RSMI-NE/issues"
     },
     license='Apache License 2.0',
-    packages=['toolbox'],
     install_requires=['requests',
                       'numpy',
                       'tensorflow',
