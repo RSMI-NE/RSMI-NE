@@ -12,9 +12,9 @@ import argparse
 import pickle
 import numpy as np
 
-import build_dataset as ds
-import cg_optimisers as cg_opt
-import plotter
+import rsmine.coarsegrainer.build_dataset as ds
+import rsmine.coarsegrainer.cg_optimisers as cg_opt
+import rsmine.coarsegrainer.plotter
 
 
 def coarsegrain(index, ll, buffer_size=2, env_cap=4, ensemble_size=1,
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     filter_lim = args.filterlim
     use_GPU = args.useGPU
 
-    with open(os.path.join(os.pardir, 'input', prefix+'.json')) as f:
+    with open(os.path.join('input', prefix+'.json')) as f:
         params = json.load(f)
 
     data_params = params['data_params']

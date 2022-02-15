@@ -23,13 +23,16 @@ tfkl = tf.keras.layers
 import wandb
 from wandb.keras import WandbCallback
 
-import build_dataset as ds
-from cg_layers import CoarseGrainer
-abspath = os.path.abspath(__file__)
-os.chdir(os.path.dirname(abspath))
-sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
-import VBMI_estimators 
-from VBMI_bounds import lowerbounds
+import rsmine.coarsegrainer.build_dataset as ds
+from rsmine.coarsegrainer.cg_layers import CoarseGrainer
+#abspath = os.path.abspath(__file__)
+#os.chdir(os.path.dirname(abspath))
+#sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
+#import VBMI_estimators 
+#from VBMI_bounds import lowerbounds
+#SeparableCritic = VBMI_estimators.SeparableCritic
+import rsmine.mi_estimator.VBMI_estimators as VBMI_estimators
+from rsmine.mi_estimator.VBMI_bounds import lowerbounds
 SeparableCritic = VBMI_estimators.SeparableCritic
 
 

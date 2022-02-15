@@ -14,7 +14,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.append(os.path.join(os.pardir, os.pardir, "mi_estimator", "src"))
+#sys.path.append(os.path.join(os.pardir, os.pardir, "mi_estimator", "src"))
 
 import matplotlib
 import matplotlib.pyplot as plt

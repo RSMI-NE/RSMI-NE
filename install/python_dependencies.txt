@@ -1,8 +1,0 @@
-json5==0.9.5
-matplotlib==3.3.0
-numpy==1.18.
-pandas==1.0.5
-scipy==1.4.1
-tensorflow==2.3.0
-tensorflow-probability==0.11.0
-tqdm==4.48.0

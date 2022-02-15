@@ -6,7 +6,7 @@ Date: 14/02/2022
 """
 
 import tensorflow as tf
-from .utils import multi_mlp
+from rsmine.mi_estimator.utils import multi_mlp
 
 
 class SeparableCritic(tf.keras.Model):

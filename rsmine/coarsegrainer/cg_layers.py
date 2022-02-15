@@ -12,7 +12,7 @@ Date: 26/08/2021
 """
 
 
-import numpy as np  # used for exponential moving average
+import numpy as np 
 import tensorflow as tf
 #from tensorflow.keras import datasets, models, regularizers, backend  
 #from tensorflow.python.framework import ops

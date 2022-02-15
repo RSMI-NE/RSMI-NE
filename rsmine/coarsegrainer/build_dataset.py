@@ -15,7 +15,7 @@ import itertools
 import numpy as np
 import tensorflow as tf
 import networkx as nx
-from cg_utils import array2tensor, construct_reference_graph, construct_VE_edgelists
+from rsmine.coarsegrainer.cg_utils import array2tensor, construct_reference_graph, construct_VE_edgelists
 
 def filename(model: str, lattice: str, L: int, J=None, T=None, 
     fileformat: str='txt', basedir: str='data', prefix: str='configs') -> str:

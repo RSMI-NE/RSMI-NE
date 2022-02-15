@@ -13,8 +13,8 @@ from tqdm.notebook import tqdm
 import numpy as np
 import tensorflow as tf
 
-from .VBMI_bounds import lowerbounds
-from .critics import SeparableCritic
+from rsmine.mi_estimator.VBMI_bounds import lowerbounds
+from rsmine.mi_estimator.critics import SeparableCritic
 
 
 def train_estimator(X, Y, critic_params, opt_params, bound='infonce'):

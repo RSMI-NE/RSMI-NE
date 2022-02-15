@@ -13,7 +13,7 @@ Date: 10/01/2021
 
 import tensorflow as tf
 import tensorflow_probability as tfp
-from .utils import reduce_logmeanexp_offdiag
+from rsmine.mi_estimator.utils import reduce_logmeanexp_offdiag
 
 
 def infonce_lower_bound(x, y, f_ansatz):

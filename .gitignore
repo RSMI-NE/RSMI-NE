@@ -2,10 +2,11 @@
 *.ipynb_checkpoints
 *__pycache__
 tensorflow_macos_venv
+bin
+data
 
-/coarsegrainer/data/*
-/coarsegrainer/runs/*
-/coarsegrainer/src/wandb/*
+rsmine/coarsegrainer/runs/*
+rsmine/coarsegrainer/src/wandb/*
 
 /mc_dimer/input/run_dimer_daint_demo
 mc_dimer/input/run_dimer_daint_demo.sh

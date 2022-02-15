@@ -1,4 +1,4 @@
-from .VBMI_estimators import train_estimator
+from rsmine.mi_estimator.VBMI_estimators import train_estimator
 
 class VBMI():
     """Interface for mutual information estimation by maximising variational lower bounds.
