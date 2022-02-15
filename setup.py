@@ -13,7 +13,7 @@ setup(
     description='Optimal coarse graining transformations with RSMI neural estimation',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/RSMI-NE/RSMI-NE/rsmine',
+    url='https://github.com/RSMI-NE/RSMI-NE',
     project_urls={
         "Bug Tracker": "https://github.com/RSMI-NE/RSMI-NE/issues"
     },
