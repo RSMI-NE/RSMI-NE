@@ -20,7 +20,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 tfkl = tf.keras.layers
-tfp = tfp.layers
+#tfpl = tfp.layers
 
 
 class Conv2DSingle(tfkl.Layer):
