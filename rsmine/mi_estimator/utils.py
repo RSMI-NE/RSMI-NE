@@ -107,17 +107,18 @@ def multi_mlp(hidden_dim: int, output_dim: int,
         model_seq += [tfkl.Activation(activation)]
         layers -= 1
 
-    hidden_dense_layer = tfkl.Dense(hidden_dim, activation=activation)
-    dropout_layer = tfkl.Dropout(dropout_rate)
+    #hidden_dense_layer = tfkl.Dense(hidden_dim, activation=activation)
+    #dropout_layer = tfkl.Dropout(dropout_rate)
     visible_dense_layer = tfkl.Dense(output_dim)
 
     if use_dropout:
         model_seq += [layer for _ in range(layers)
-                      for layer in [hidden_dense_layer, dropout_layer]]
+                      for layer in [tfkl.Dense(hidden_dim, activation=activation), 
+					  				tfkl.Dropout(dropout_rate)]]
         model_seq += [visible_dense_layer]
 
     else:
-        model_seq += [hidden_dense_layer for _ in range(layers)]
+        model_seq += [tfkl.Dense(hidden_dim, activation=activation) for _ in range(layers)]
         model_seq += [visible_dense_layer]
 
     return tf.keras.Sequential(model_seq)
@@ -141,15 +142,15 @@ def mlp(hidden_dim: int, output_dim: int, layers: int, activation,
     The MLP network (tf.keras.Model)
     """
 
-    hidden_dense_layer = tfkl.Dense(hidden_dim, activation)
-    dropout_layer = tfkl.Dropout(dropout_rate)
+    #hidden_dense_layer = tfkl.Dense(hidden_dim, activation)
+    #dropout_layer = tfkl.Dropout(dropout_rate)
     visible_dense_layer = tfkl.Dense(output_dim)
 
     if use_dropout:
         return tf.keras.Sequential(
             [layer for _ in range(layers)
-             for layer in [hidden_dense_layer, dropout_layer]]
+             for layer in [tfkl.Dense(hidden_dim, activation), tfkl.Dropout(dropout_rate)]]
             + [visible_dense_layer])
     else:
         return tf.keras.Sequential(
-            [hidden_dense_layer for _ in range(layers)] + [visible_dense_layer])
+            [tfkl.Dense(hidden_dim, activation) for _ in range(layers)] + [visible_dense_layer])

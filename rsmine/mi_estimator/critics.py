@@ -13,7 +13,7 @@ class SeparableCritic(tf.keras.Model):
     """Separable ansatz (critic) for MI bound.
 
     Attributes: 
-    _g (_h) -- MLP ansatz for X (_Y) variable
+    _g (_h) -- MLP ansatz for X (Y) variable
 
     Methods:
     call(x, y) -- calls the ansatz as a function for samples x, y
@@ -35,21 +35,10 @@ class SeparableCritic(tf.keras.Model):
         """
 
         super(SeparableCritic, self).__init__()
-        self._g = multi_mlp(hidden_dim, embed_dim, layers, activation, input_shape=input_shapes[0],
+        self._g = multi_mlp(hidden_dim, embed_dim, layers, activation, input_shape=input_shapes[1],
                           use_dropout=use_dropout, dropout_rate=dropout_rate)
-        self._h = multi_mlp(hidden_dim, embed_dim, layers, activation, input_shape=input_shapes[1],
+        self._h = multi_mlp(hidden_dim, embed_dim, layers, activation, input_shape=input_shapes[0],
                           use_dropout=use_dropout, dropout_rate=dropout_rate)
-
-    def call(self, x, y):
-        """Constructs unnormalised likelihood matrix (or scores) 
-        from the two separate MLP's for x and y data.
-
-        Keyword arguments:
-        x -- a sample for the random variable X
-        y -- a sample for the random variable Y
-        """
-
-        return tf.einsum('ij,kj->ik', self._h(y), self._g(x))
 
     def call(self, x, y):
         """Constructs unnormalised likelihood matrix (or scores) 

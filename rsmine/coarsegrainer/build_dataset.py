@@ -605,7 +605,7 @@ class dataset():
         """
 
         if cap is None:
-        	cap = self.L
+            cap = self.L
 
         dim = len(ll)
         offset = cap - ll[0] # boundary offset for the visible block
