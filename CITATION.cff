@@ -1,0 +1,23 @@
+cff-version: 0.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Gökmen
+    given-names: Doruk Efe
+    orcid: https://orcid.org/0000-0002-5536-1941
+  - family-names: Ringel
+    given-names: Zohar
+  - family-names: Huber
+    given-names: Sebastian D.
+  - family-names: Koch-Janusz
+    given-names: Maciej
+title: Statistical Physics through the Lens of Real-Space Mutual Information
+journal: Phys. Rev. Lett.
+volume: 127
+issue: 24
+pages: 240603
+numpages: 7
+publisher: American Physical Socoety
+doi: 10.1103/PhysRevLett.127.240603
+url: https://link.aps.org/doi/10.1103/PhysRevLett.127.240603
+date-released: 2021-12-06
+            
