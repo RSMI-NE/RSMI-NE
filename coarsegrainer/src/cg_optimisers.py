@@ -156,7 +156,9 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   *int(np.ceil(data_params['N_samples']/opt_params['batch_size'])), desc='')
 
   epoch_id = 0
+  print("Len dat: ",len(dat))
   for i, (V, E) in enumerate(dat):
+
     CG.global_step = i
 
     # train coarse-graining filters and vbmi critic parameters simultaneously
@@ -175,7 +177,10 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
       if i % int(np.ceil(data_params['N_samples']/opt_params['batch_size'])) == 0:
         coarse_vars.append(h.numpy())
         estimates.append(mi.numpy())
-        filters.append(CG.coarse_grainer.get_weights()[0])
+        if CG_params['nonlinearCG'] is None or CG_params['nonlinearCG']==[0]:
+            filters.append(CG.coarse_grainer.get_weights()[0])
+        else:
+            filters.append(CG.coarse_grainer.get_weights())    # this is currently a PLACEHOLDER
 
         if use_wandb:
           # log metrics using Weights and Biases API
@@ -197,10 +202,10 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
 
 
   #Save last filters
-  if use_wandb:
-    if not(math.isnan(mi)):
-      for k in range(np.array(filters).shape[3]):
-        wandb.run.summary["filter %i" % k] = wandb.Image(np.array(filters)[-1][:,:,k])
+  #if use_wandb:
+   # if not(math.isnan(mi)):
+    #  for k in range(np.array(filters).shape[3]):
+     #   wandb.run.summary["filter %i" % k] = wandb.Image(np.array(filters)[-1][:,:,k])
 
   if verbose:  
     print('Training complete.')

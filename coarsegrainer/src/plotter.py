@@ -154,7 +154,7 @@ def plot_filter_series(coarse_grainer, series_skip=1, filter_index=None, filter_
         ii += 1
 
 
-def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator, 
+def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, #generator, 
                         mi_bound=r'$\rm InfoNCE$', series_skip=1, EMA_span=100, 
                         filter_lim=0.5, fontsize=9, figsize=[8,6], 
                         font_family='helvetica', interpolation='none', 
@@ -273,24 +273,24 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, generator,
     plt.subplots_adjust(left=None, bottom=None, right=None,
                         top=None, wspace=None, hspace=0.4)
 
-    if save:
-        if generator.model == 'intdimer2d':
-            plt.savefig(os.path.join(os.pardir, 'data', 'results', 
-            'RSMImax'+generator.model+generator.lattice_type+'{0:.3f}'.format(generator.T)+'.pdf'))
-        elif generator.model == 'ising2d':
-            plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
-                                    generator.model+generator.lattice_type+'{0:.3f}'.format(generator.J)+'.pdf'))
-        elif generator.model == 'STM2d':
-            plt.savefig(os.path.join('/Users/maciej/work','LDOS1/rsmi','RSMImax'+'_smp'+sample_no+'_ll'+CG_params['ll'][1]+'_b'+buffer_size+'_e'+env_size+'_s'+stride+'.pdf'))
-        else:
-            plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
-                                    generator.model+generator.lattice_type+'.pdf'))
+    #if save:
+    #    if generator.model == 'intdimer2d':
+    #        plt.savefig(os.path.join(os.pardir, 'data', 'results', 
+    #        'RSMImax'+generator.model+generator.lattice_type+'{0:.3f}'.format(generator.T)+'.pdf'))
+    #    elif generator.model == 'ising2d':
+    #        plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
+    #                                generator.model+generator.lattice_type+'{0:.3f}'.format(generator.J)+'.pdf'))
+    #    elif generator.model == 'STM2d':
+    #        plt.savefig(os.path.join('/Users/maciej/work','LDOS1/rsmi','RSMImax'+'_smp'+sample_no+'_ll'+CG_params['ll'][1]+'_b'+buffer_size+'_e'+env_size+'_s'+stride+'.pdf'))
+    #    else:
+    #        plt.savefig(os.path.join(os.pardir, 'data', 'results', 'RSMImax' +
+    #                                generator.model+generator.lattice_type+'.pdf'))
     #plt.show()
     
 def plot_reference_graph():
     pass
 
-def plot_fancy_rsmimax_graph(estimates, filters, nodes, nodepos, edges, V_edgelist, opt_params, CG_params, generator, 
+def plot_fancy_rsmimax_graph(estimates, filters, nodes, nodepos, edges, V_edgelist, opt_params, CG_params, #generator, 
                         mi_bound=r'$\rm InfoNCE$', series_skip=1, EMA_span=100, 
                         filter_lim=0.5, fontsize=9, figsize=[8,6], 
                         font_family='helvetica', interpolation='none', 

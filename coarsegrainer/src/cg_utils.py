@@ -188,3 +188,23 @@ def construct_VE_edgelists(G, V_index, L_B, ll, cap=None):
     GE_edges = construct_edgelist_from_nodes(G,GE_verts)
  
     return GV_edges, GE_edges
+    
+    
+def iter_loadtxt(filename, delimiter=' ', skiprows=0, dtype=float):
+    """
+    Iteratively, line by line, load data from txt file and put in np.array
+    Much more memory efficient than np.loadtxt (whose peak mem use may be many times the final size of array)
+    """
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split(delimiter)
+                for item in line:
+                    yield dtype(item)
+        iter_loadtxt.rowlength = len(line)
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, iter_loadtxt.rowlength))
+    return data

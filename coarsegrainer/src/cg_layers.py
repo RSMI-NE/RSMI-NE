@@ -133,7 +133,98 @@ class ConvGraphSingle(tfkl.Layer):
     """
 
     return tf.einsum('tik,is->tsk', inputs, self.ws)
+    
+class ConvGraphMultiple(tfkl.Layer):#(tf.keras.Model):#(tfkl.Layer):
+  """Custom convolution layer to produce the (stochastic) coarse-graining map
+  from visible degrees of freedom on a (netoworkx) graph. The difference to
+  Conv2DSingle is that ll in *not* a tuple, but an int defining the radius of V, 
+  all the configurations are otherwise one-dimensional. 
+  The input_shape is (#edges in V,)
+  """
 
+  def __init__(self, hidden_dim, input_shape=(2,), layer_sizes = None, init_rule=None):
+    """Constructs the convolutional net.
+    
+    Attributes:
+    ws -- weights of the kernel
+
+    Methods: 
+    call() -- call the network as a function
+    """
+
+    super(ConvGraphMultiple, self).__init__()
+    
+    #self.layer_list = [tfkl.Dense(layer_size,kernel_initializer='random_normal') for layer_size in layer_sizes]
+    self.layer_1 = tfkl.Dense(2,kernel_initializer='random_normal',activation='sigmoid')
+    self.layer_2 = tfkl.Dense(1,kernel_initializer='random_normal')
+
+
+  def call(self, inputs):
+    """Computes the dot product between the input and kernel weights.
+
+    Keyword arguments:
+    inputs -- tensor encoding the visible block to be coarse-grained
+    """
+    x = self.layer_list[0](tf.reshape(inputs,inputs.shape[:-1]))   #(inputs)
+    if len(self.layer_list) > 1:
+        for i,layer in enumerate(self.layer_list[1:]):
+            x = tf.nn.sigmoid(x)
+            x = layer(x)
+    return tf.reshape(x,x.shape+(1,)) # x
+    
+    return tf.reshape(x,x.shape+(1,))
+    
+
+
+class ConvGraphMultiple3(tf.keras.Model):#(tfkl.Layer):
+  """Custom convolution layer to produce the (stochastic) coarse-graining map
+  from visible degrees of freedom on a (netoworkx) graph. The difference to
+  Conv2DSingle is that ll in *not* a tuple, but an int defining the radius of V, 
+  all the configurations are otherwise one-dimensional. 
+  
+  The actual shape of the inputs is is: (implicitly) batch size, and then (size_V,1), where this 1 is there for the currently unused one-hot encoding.
+  Don't confuse the actual shape, with the input_shape variable, which is given by (size_V,), and with the input_shape positional argument
+  of the keras Reshape layer.
+  """
+
+  def __init__(self, hidden_dim, input_shape=(2,), layer_sizes = None, hidden_activations = None, hidden_activations_L2_reg = 0, init_rule=None):
+    """Constructs the convolutional net.
+    
+    Attributes:
+    ws -- weights of the kernel
+
+    Methods: 
+    call() -- call the network as a function
+    """
+
+    super(ConvGraphMultiple3, self).__init__()
+
+    # CURRENT VERSION: IGNORE THE ONE_HOT DIMENSION. CUT IT OUT, THEN BRING BACK IN THE END.
+    #in_reshape = tf.keras.layers.Reshape((872,), input_shape=(872,1))
+    
+    in_reshape = tf.keras.layers.Reshape(target_shape = input_shape, input_shape=(input_shape[0],1))
+    out_reshape = tf.keras.layers.Reshape((hidden_dim,1))
+    
+    aux_layers = []
+    for layer_size in layer_sizes[:-1]:
+        aux_layers += [tfkl.Dense(layer_size,kernel_initializer='random_normal',activation=hidden_activations,activity_regularizer=tf.keras.regularizers.L2(hidden_activations_L2_reg))]
+    aux_layers += [tfkl.Dense(layer_sizes[-1],kernel_initializer='random_normal')]
+    self.CGlayers = tf.keras.Sequential([in_reshape]+aux_layers+[out_reshape])
+    print(layer_sizes)
+    print(hidden_activations)
+    print("Hidden dim: ", hidden_dim)
+    print('Ver 3')
+
+
+  def call(self, inputs):
+    """Computes the dot product between the input and kernel weights.
+
+    Keyword arguments:
+    inputs -- tensor encoding the visible block to be coarse-grained
+    """
+    
+    return self.CGlayers(inputs)
+    
 
 class CoarseGrainer(tf.keras.Model):
   def __init__(self, ll=None, size_V=None, num_hiddens=1, conv_activation='tanh', 
@@ -171,11 +262,14 @@ class CoarseGrainer(tf.keras.Model):
     self._global_step = 0  # intialise the global iteration step in training
     
     if isinstance(size_V,int):
-      self.coarse_grainer = ConvGraphSingle(num_hiddens, (size_V,), init_rule)
+        if extra_kwargs['nonlinearCG'] is None or extra_kwargs['nonlinearCG']==[0]:
+            self.coarse_grainer = ConvGraphSingle(num_hiddens, (size_V,), init_rule)
+        else:
+            self.coarse_grainer = ConvGraphMultiple3(num_hiddens, (size_V,), extra_kwargs['nonlinearCG'],extra_kwargs['hidden_activations'],extra_kwargs['hidden_activations_L2_reg'])
     elif len(ll) == 2: # i.e. if dimensionality (d) is 2
-      self.coarse_grainer = Conv2DSingle(num_hiddens, ll, init_rule)
+        self.coarse_grainer = Conv2DSingle(num_hiddens, ll, init_rule)
     elif len(ll) == 3: # if d=3
-      self.coarse_grainer = Conv3DSingle(num_hiddens, ll, init_rule)
+        self.coarse_grainer = Conv3DSingle(num_hiddens, ll, init_rule)
     
       
     if h_embed:  
@@ -232,8 +326,8 @@ class CoarseGrainer(tf.keras.Model):
           self.embedder = tfkl.Lambda(lambda x: tfd.RelaxedOneHotCategorical(
                                       self.tau, logits=x).sample()) 
           # stack the convolution and embedding layers
-          self._Λ = tf.keras.Sequential([self.coarse_grainer, 
-                                         self.embedder])  # TODO: squeeze the output?
+          #self._Λ = tf.keras.Sequential([self.coarse_grainer,self.embedder])  # TODO: squeeze the output?
+          self._Λ = tf.keras.Sequential([self.coarse_grainer,self.embedder])  
 
     else:
       # directly use the CNN output as the coarse-grained variable
