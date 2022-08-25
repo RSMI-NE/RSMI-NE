@@ -282,15 +282,16 @@ class CoarseGrainer(tf.keras.Model):
     
     if isinstance(size_V,int):
         if extra_kwargs['nonlinearCG'] is None or extra_kwargs['nonlinearCG']==[0]:
-            self.coarse_grainer = ConvGraphSingle(num_hiddens, visible_dim=visible_dim,
+            self.coarse_grainer = ConvGraphSingle(hidden_dim, visible_dim=visible_dim,
                                 input_shape=(size_V,), init_rule=init_rule)
         else:
-            self.coarse_grainer = ConvGraphMultiple3(num_hiddens, (size_V,), extra_kwargs['nonlinearCG'],extra_kwargs['hidden_activations'],extra_kwargs['hidden_activations_L2_reg'])
+            self.coarse_grainer = ConvGraphMultiple3(hidden_dim, (size_V,), extra_kwargs['nonlinearCG'],extra_kwargs['hidden_activations'],extra_kwargs['hidden_activations_L2_reg'])
+            # TODO: handle multicomponent variables in ConvGraphMultiple3
     elif len(ll) == 2: # i.e. if dimensionality (d) is 2
-        self.coarse_grainer = Conv2DSingle(num_hiddens, visible_dim=visible_dim, 
+        self.coarse_grainer = Conv2DSingle(hidden_dim, visible_dim=visible_dim, 
                                           input_shape=ll, init_rule=init_rule)
     elif len(ll) == 3: # if d=3
-        self.coarse_grainer = Conv3DSingle(num_hiddens, visible_dim=visible_dim, 
+        self.coarse_grainer = Conv3DSingle(hidden_dim, visible_dim=visible_dim, 
                                           input_shape=ll, init_rule=init_rule)
     
       
