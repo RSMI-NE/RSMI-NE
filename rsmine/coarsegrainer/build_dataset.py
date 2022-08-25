@@ -655,12 +655,9 @@ class dataset():
         Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
         
         # additional dimension for one-hot encoding (used for more conv channels, only Vs)
-<<<<<<< HEAD:coarsegrainer/src/build_dataset.py
-        Vs = np.reshape(Vs, np.shape(Vs) + (1,))
-=======
+
         Vs = np.reshape(Vs, np.shape(Vs) + (self.Nq-1, ))
         # TODO: Add multicomponent dimension
->>>>>>> ebd9f49f9cbea3c465902fcc676a7697dd358a70:rsmine/coarsegrainer/build_dataset.py
 
         if self.verbose:
             print('RSMI dataset prepared.')
