@@ -616,7 +616,7 @@ class dataset():
         Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
         
         # additional dimension for one-hot encoding (used for more conv channels, only Vs)
-        Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 
+        Vs = np.reshape(Vs, np.shape(Vs) + (1,))
 
         if self.verbose:
             print('RSMI dataset prepared.')
