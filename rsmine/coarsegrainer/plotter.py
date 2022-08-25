@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 
-sys.path.append(os.path.join(os.pardir, os.pardir, "mi_estimator", "src"))
+#sys.path.append(os.path.join(os.pardir, os.pardir, "mi_estimator", "src"))
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -158,7 +158,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, #generator,
                         mi_bound=r'$\rm InfoNCE$', series_skip=1, EMA_span=100, 
                         filter_lim=0.5, fontsize=9, figsize=[8,6], 
                         font_family='helvetica', interpolation='none', 
-                        cmap='coolwarm', save=False):
+                        cmap='coolwarm', fig_id=None, save=False):
 
     matplotlib.style.use('classic')
     plt.rc('text', usetex=False) #True
@@ -186,7 +186,7 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, #generator,
     matplotlib.rcParams.update(params)
 
     epochs = opt_params['iterations']
-    num_hiddens = CG_params['num_hiddens']
+    num_hiddens = CG_params['hidden_dim']
     ll = CG_params['ll']
 
     # initiate width ratios for colorbar versus the filter weight density plots
@@ -195,7 +195,9 @@ def plot_fancy_rsmimax(estimates, filters, opt_params, CG_params, #generator,
         width_ratios += [10]
     width_ratios += [0.5]
 
-    fig = plt.figure(1)
+    if fig_id is None:
+        fig_id = 1
+    fig = plt.figure(fig_id)
 
     """
     1. Plot series for rsmi

@@ -5,7 +5,7 @@ to calculate the real-space mutual information I_Lambda(h:e).
 Separate versions for regular lattices, and arbitrary graphs.
 
 Author: Doruk Efe Gökmen, Maciej Koch-Janusz
-Date: 08/04/2021
+Date: 26/08/2021
 """
 
 import os
@@ -15,10 +15,10 @@ import itertools
 import numpy as np
 import tensorflow as tf
 import networkx as nx
-from cg_utils import array2tensor, construct_reference_graph, construct_VE_edgelists
+from rsmine.coarsegrainer.cg_utils import array2tensor, construct_reference_graph, construct_VE_edgelists
 
-def filename(model, lattice, L, J=None, T=None, 
-            fileformat='txt', basedir='data', prefix='configs'):
+def filename(model: str, lattice: str, L: int, J=None, T=None, 
+    fileformat: str='txt', basedir: str='data', prefix: str='configs') -> str:
     """Returns filename (str) according to naming scheme from specified model parameters.
 
     Keyword arguments:
@@ -42,8 +42,8 @@ def filename(model, lattice, L, J=None, T=None,
                             % (model, lattice, fileformat))
 
 
-def RSMIdat_filename(model, lattice_type, L, T, buffer_size, 
-                    region='V', dir='RSMIdat', **kwargs):
+def RSMIdat_filename(model: str, lattice_type: str, L: int, T, buffer_size: int, 
+                    region: str='V', dir: str='RSMIdat', **kwargs) -> str:
     """Returns filename (str) for the RSMI dataset containing the V, E samples.
     
     Keyword arguments:
@@ -105,7 +105,7 @@ def save_RSMIdat(data_params, V, E):
     return RSMIdat
 
 
-def partition_x(x, index, L_B, ll, cap=None):
+def partition_x(x: np.ndarray, index: tuple, L_B: int, ll: tuple, cap: int=None) -> tuple:
     """Partitions a sample configuration into a visible block
     and an annular environment separated by a buffer. 
     Assumes a standard regular lattice e.g. square.
@@ -118,8 +118,11 @@ def partition_x(x, index, L_B, ll, cap=None):
     cap (int) -- linear size of the finite subsystem capped from x
     """
 
+    #x = np.squeeze(x)
+
     dim = len(index)
     L = x.shape[0]
+    visible_dim = x.shape[-1]
 
     def cap_minus(d, cap=L):
         return (cap - ll[d])//2
@@ -131,30 +134,31 @@ def partition_x(x, index, L_B, ll, cap=None):
         cap = L
 
     x_ext = np.pad(x, [(cap_minus(d, cap=cap), cap_plus(d, cap=cap))
-                       for d in range(dim)], 'wrap')
+                       for d in range(dim)] + [(0, 0)], 'wrap')
     index = tuple(
         np.add(index, tuple([cap_minus(d, cap=cap) for d in range(dim)])))
 
     # get environment
     t = np.zeros(x_ext.shape, dtype=bool)
     cap_slice = tuple([slice(index[d]-cap_minus(d, cap=cap), index[d]+cap_plus(d, cap=cap))
-                       for d in range(dim)])
-    t[cap_slice] = np.ones(dim*(cap, ), dtype=bool)
+                       for d in range(dim)] + [slice(None, None)])
+    t[cap_slice] = np.ones(dim*(cap, ) + (visible_dim, ), dtype=bool)
 
     buffer_slice = tuple([slice(index[d]-L_B, index[d]+L_B+ll[d])
-                          for d in range(dim)])
-    buffer_mask_size = tuple([2*L_B+ll[d] for d in range(dim)])
+                          for d in range(dim)] + [slice(None, None)])
+    buffer_mask_size = tuple([2*L_B+ll[d] for d in range(dim)] + [visible_dim])
     t[buffer_slice] = np.zeros(buffer_mask_size, dtype=bool)
     e = x_ext[t]
 
     # get visible block
     visible_slice = tuple([slice(index[d], index[d]+ll[d])
-                           for d in range(dim)])
+                           for d in range(dim)] + [slice(None, None)])
     v = x_ext[visible_slice]
     v = v.flatten()
 
     return v, e
     
+
 
 def partition_noneq1(x, index, L_B, ll, cap=None):
     """Partitions a sample configuration into a visible block
@@ -185,6 +189,8 @@ def partition_noneq1(x, index, L_B, ll, cap=None):
 def partition_x_graph(x,GV_edges,GE_edges):
     """Partitions a sample configuration into a visible block V
     and an environment E. E and V are *arbitrary*, given by sets of edges.  
+
+    TODO: address the multi-component case.
     """
     # carve out e and v
     if x.ndim ==1:
@@ -196,7 +202,8 @@ def partition_x_graph(x,GV_edges,GE_edges):
     
     return v, e
 
-def get_V(x, index, ll):
+
+def get_V(x: np.ndarray, index: tuple, ll: tuple) -> np.ndarray:
     """Get the region to be coarse-grained.
 
     Keyword arguments:
@@ -208,16 +215,18 @@ def get_V(x, index, ll):
     dim = len(index)
     L = x.shape[0]
 
-    x_ext = np.pad(x, [(0, ll[d]) for d in range(dim)], 'wrap')
+    x_ext = np.pad(x, [(0, ll[d]) for d in range(dim)] + [(0, 0)], 'wrap')
 
     visible_slice = tuple([slice(index[d], index[d]+ll[d])
-                           for d in range(dim)])
+                           for d in range(dim)] + [slice(None, None)])
     v = x_ext[visible_slice]
 
     return v.flatten()
+
     
 def get_V_graph(x, G, V_index, ll):
     """Get the region to be coarse-grained. Graph (networkx) version.
+    TODO: address the multi-component case.
 
     Keyword arguments:
     x -- a sample configuration
@@ -258,6 +267,7 @@ def get_E(x, index, L_B, ll, cap=None):
 
     dim = len(index)
     L = x.shape[0]
+    visible_dim = x.shape[-1]
 
     def cap_minus(d, cap=L):
         return (cap - ll[d])//2
@@ -269,30 +279,30 @@ def get_E(x, index, L_B, ll, cap=None):
         cap = L
 
     x_ext = np.pad(x, [(cap_minus(d, cap=cap), cap_plus(d, cap=cap))
-                       for d in range(dim)], 'wrap')
+                       for d in range(dim)] + [(0, 0)], 'wrap')
     index = tuple(
         np.add(index, tuple([cap_minus(d, cap=cap) for d in range(dim)])))
 
     # get environment
-    t = np.zeros(x_ext.shape, dtype=bool)
+    t = np.zeros(x_ext.shape, dtype=bool) # mask of the environment
     cap_slice = tuple([slice(index[d]-cap_minus(d, cap=cap), index[d]+cap_plus(d, cap=cap))
-                       for d in range(dim)])
-    t[cap_slice] = np.ones(dim*(cap, ), dtype=bool)
+                       for d in range(dim)] + [slice(None, None)])
+    t[cap_slice] = np.ones(dim*(cap, ) + (visible_dim, ), dtype=bool)
 
     buffer_slice = tuple([slice(index[d]-L_B, index[d]+L_B+ll[d])
-                          for d in range(dim)])
-    buffer_mask_size = tuple([2*L_B+ll[d] for d in range(dim)])
+                          for d in range(dim)] + [slice(None, None)])
+    buffer_mask_size = tuple([2*L_B+ll[d] for d in range(dim)] + [visible_dim])
     t[buffer_slice] = np.zeros(buffer_mask_size, dtype=bool)
     e = x_ext[t]
 
     return e
 
 
-
 class dataset():
     """
     Class generating the dataset from full raw sample dataset of degrees of freedom for
     generating the visible block and environment dataset for rsmi optimisation.
+    TODO: address the multi-component case.
 
     Methods:
     get_Vs -- samples for the region to be coarse-grained (visible region)
@@ -301,8 +311,11 @@ class dataset():
     chop_data()
     """
 
-    def __init__(self, model, L, lattice_type, dimension=2, G = None, configurations = None, N_samples=None, 
-                J=None, Nq=None, T=None, Time_dim = None, srn_correlation=None, basedir='data', verbose=True, **kwargs):
+    def __init__(self, model: str, L: int, lattice_type: str, 
+                dimension: int=2, G=None, configurations=None, 
+                visible_dim: int=1, N_samples=None, J=None, Nq=None, T=None, 
+                Time_dim: int=None,
+                basedir: int='data', verbose: bool=True, **kwargs):
         """ Constructs all necessary attributes of the physical system.        
         
         Attributes:
@@ -311,10 +324,14 @@ class dataset():
         lattice_type (str) -- e.g. square or triangular, or networkx for graphs
         dimension (int) -- dimensionality of the sytem
         G (networkx graph) -- reference graph, for system on non-periodic lattices
-        configurations (np.array) -- input configurations pre-loaded into memory (default None)
+        configurations (np.array) -- input configurations pre-loaded into memory 
+                                        (default None)
+        visible_dim (int) -- number of components of a vector degree of freedom 
+                                (default None or 1, i.e. scalar)
         N_samples (int) -- total number of sample configurations (default None)
         J (float) -- Ising coupling constant (default None)
-        Nq (int) -- number of states for a Potts degree of freedom (default None)
+        Nq (int) -- number of states for a Potts degree of freedom 
+                    (default None or 2, i.e. binary variable, e.g. spin-1/2)
         T (float) -- temperature of the system
         basedir (str) -- directory name of the input data
         verbose (bool)
@@ -322,11 +339,15 @@ class dataset():
 
         self.model = model
         self.J = J
-        self.Nq = Nq #number of states for a Potts variable
+        if Nq is None:
+            self.Nq = 2 # binary valued variable (e.g. spin-1/2)
+        else:
+            self.Nq = Nq # number of states for a discrete (e.g. Potts) variable
         self.T = T
         self.Time_dim = Time_dim # optional: size of the system in temporal direction
         self.L = L 
         self.dimension = dimension 
+        self.visible_dim = visible_dim
         self.N_samples = N_samples
         self.N_configs = self.N_samples
         self.lattice_type = lattice_type
@@ -377,9 +398,18 @@ class dataset():
             else:
                 warnings.warn("Warning: the dataset with desired system parameters could not be found.")
 
+        self.configurations = self.configurations.reshape((self.N_configs, )
+                                                            + self.dimension*(self.L, )
+                                                            + (self.visible_dim, ))
 
-    def gen_Vs(self, indices, ll, shape=None):
+    def gen_Vs(self, indices: tuple, ll: tuple, shape=None):
         """Generator for for the visible block to be coarse-grained.
+        The output array indices correspond to the following:
+        [0, ..., dimension] -- spatial indices
+        [dimension] -- index of the spin (DoF) component
+        [dimension + 1] -- one-hot representation of a spin component
+
+        TODO: needs to be debugged.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -396,7 +426,7 @@ class dataset():
 
 
         if shape is None:
-            shape = self.dimension * (self.L, )
+            shape = self.dimension * (self.L, ) + (self.visible_dim, )
 
         if self.verbose:
             print('Preparing the visible block dataset...')
@@ -405,8 +435,9 @@ class dataset():
             index = get_index(indices, t)
             config = self.configurations[t].reshape(shape)
 
-            # additional dimension for one-hot encoding
-            yield array2tensor(get_V(config, index, ll).reshape(ll + (1,)))
+            yield array2tensor(get_V(config, index, ll).reshape(ll + (self.visible_dim, ) 
+                                                                   + (self.Nq-1, )))
+                                            # additional dimension for one-hot encoding
 
         if self.verbose:
             print('Visible block dataset prepared.')
@@ -415,6 +446,7 @@ class dataset():
     def gen_Vs_graph(self,V_index,ll):
         """Generator for for the visible block to be coarse-grained,
         for a graph (networkx) input.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         V_index (int) -- index of graph node which is the center of V
@@ -433,8 +465,10 @@ class dataset():
             print('Visible block dataset prepared.')
 
 
-    def gen_Es(self, indices, ll, buffer_size=2, cap=None, shape=None):
+    def gen_Es(self, indices: tuple, ll: tuple, 
+                buffer_size: int=2, cap=None, shape=None):
         """Generator for for the environment E of the visible block.
+        TODO: needs to be debugged.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -457,7 +491,7 @@ class dataset():
             print('Preparing the environment dataset...')
 
         if shape is None:
-            shape = self.dimension * (self.L, )
+            shape = self.dimension * (self.L, ) + (self.visible_dim, )
 
         for t in range(self.N_configs):
             index = get_index(indices, t)
@@ -473,8 +507,10 @@ class dataset():
         return 0
 
 
-    def gen_rsmi_data(self, index, ll, buffer_size=2, cap=None, shape=None):
+    def gen_rsmi_data(self, index: tuple, ll: tuple, # TODO: check
+                        buffer_size: int=2, cap=None, shape=None):
         """Generator for for the visible block V and its environment E.
+        TODO: debug this.
 
         Keyword arguments:
         index (int) -- index of the upper-left corner site of V
@@ -490,14 +526,15 @@ class dataset():
             print('Preparing the RSMI dataset...')
 
         if shape is None:
-            shape = self.dimension * (self.L, )
+            shape = self.dimension * (self.L, ) + (self.visible_dim, )
 
         configs = self.configurations.reshape((len(self.configurations), ) + shape)
 
         for t in range(self.N_configs):
             v, e = partition_x(configs[t], index, buffer_size, ll, cap=cap)
 
-            V = array2tensor(v.reshape(ll + (1,))) # additional dimension for one-hot encoding
+            V = array2tensor(v.reshape(ll + (self.visible_dim, ) + (self.Nq-1, )))
+                                            # additional dimension for one-hot encoding
             E = tf.cast(e, tf.float32)
 
             yield V, E
@@ -506,8 +543,10 @@ class dataset():
             print('RSMI dataset prepared.')
 
 
-    def rsmi_data(self, indices, ll, buffer_size=2, cap=None, shape=None):
+    def rsmi_data(self, indices: tuple, ll: tuple, 
+                    buffer_size: int=2, cap=None, shape=None) -> tuple:
         """Returns data for the visible block V and its environment E.
+        TODO: debug this.
 
         Keyword arguments:
         indices (list of tuples of int) -- index of the upper-left corner site of V
@@ -525,12 +564,11 @@ class dataset():
             else:
                 return indices
 
-
         if self.verbose:
             print('Preparing the RSMI dataset...')
 
         if shape is None:
-            shape = self.dimension * (self.L, )
+            shape = self.dimension * (self.L, ) + (self.visible_dim, )
 
         configs = self.configurations.reshape((len(self.configurations), ) + shape)
 
@@ -545,7 +583,7 @@ class dataset():
             Es.append(e)
         
         # additional dimension for one-hot encoding
-        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (1,)) 
+        Vs = np.reshape(Vs, (np.shape(Vs)[0], ) + ll + (self.visible_dim, ) + (self.Nq-1, ))
 
         if self.verbose:
             print('RSMI dataset prepared.')
@@ -604,6 +642,7 @@ class dataset():
         """Returns arrays of samples (as tf tensors) for the visible block V the environment E.
         Graph (networkx) version. E and V are arbitrary, specified by lists of unique indentifiers 
         of the edges in them.
+        TODO: address the multi-component case.
         
         Keyword arguments:
         GV_edges -- list of ids of edges in V
@@ -616,7 +655,8 @@ class dataset():
         Vs, Es = partition_x_graph(self.configurations, GV_edges,GE_edges)
         
         # additional dimension for one-hot encoding (used for more conv channels, only Vs)
-        Vs = np.reshape(Vs, np.shape(Vs) + (1,)) 
+        Vs = np.reshape(Vs, np.shape(Vs) + (self.Nq-1, ))
+        # TODO: Add multicomponent dimension
 
         if self.verbose:
             print('RSMI dataset prepared.')
@@ -629,6 +669,7 @@ class dataset():
         to generate many from a given dataset (V,E) samples.
         Note: Using this might be dangerous in the absence of 
         translation invariance.
+        TODO: address the multi-component case.
 
         Keyword arguments:
         stride = int
@@ -641,7 +682,7 @@ class dataset():
         """
 
         if cap is None:
-        	cap = self.L
+            cap = self.L
 
         dim = len(ll)
         offset = cap - ll[0] # boundary offset for the visible block
@@ -684,7 +725,7 @@ class dataset():
         """
         
         if cap is None:
-        	cap = self.Time_dim
+            cap = self.Time_dim
         
         offset = cap - ll[0]
         lin_size_time = self.Time_dim - burn_in_time - offset
