@@ -8,7 +8,7 @@ setup(
     name='rsmine',
     version='0.0.2rc1',
     packages=find_packages(include=['rsmine', 'rsmine.*']),
-    author='Doruk Efe Gökmen',
+    author='Doruk Efe Gökmen, Maciej Koch-Janusz',
     author_email='dgoekmen@ethz.ch',
     description='Optimal coarse graining transformations with RSMI neural estimation',
     long_description=long_description,
