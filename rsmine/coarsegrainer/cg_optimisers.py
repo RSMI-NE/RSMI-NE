@@ -17,24 +17,26 @@ import warnings
 import math
 import numpy as np 
 import pandas as pd
-from tqdm.autonotebook import tqdm  
 import tensorflow as tf
 tfkl = tf.keras.layers
 
 import wandb
 from wandb.keras import WandbCallback
 
-import build_dataset as ds
-from cg_layers import CoarseGrainer
-abspath = os.path.abspath(__file__)
-os.chdir(os.path.dirname(abspath))
-sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
-import VBMI_estimators 
-from VBMI_bounds import lowerbounds
+import rsmine.coarsegrainer.build_dataset as ds
+from rsmine.coarsegrainer.cg_layers import CoarseGrainer
+#abspath = os.path.abspath(__file__)
+#os.chdir(os.path.dirname(abspath))
+#sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
+#import VBMI_estimators 
+#from VBMI_bounds import lowerbounds
+#SeparableCritic = VBMI_estimators.SeparableCritic
+import rsmine.mi_estimator.VBMI_estimators as VBMI_estimators
+from rsmine.mi_estimator.VBMI_bounds import lowerbounds
 SeparableCritic = VBMI_estimators.SeparableCritic
 
 
-def RSMI_estimate(mis, ema_span=5000):
+def RSMI_estimate(mis: np.ndarray, ema_span: int=5000) -> float:
   """Exponential moving average  with span ema_span for the series of mi estimates.
 
   Keyword arguments:
@@ -45,13 +47,14 @@ def RSMI_estimate(mis, ema_span=5000):
   return pd.Series(mis).ewm(span=ema_span).mean().tolist()[-1]
 
 
-def train_RSMI_optimiser(CG_params, critic_params, opt_params, 
-                         data_params, bound='infonce', coarse_grain: bool=True, 
-                         init_rule=None, optimizer=None, use_GPU: bool=False, 
+def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict, 
+                         data_params: dict, bound: str='infonce', 
+                         coarse_grain: bool=True, init_rule=None, optimizer=None, 
                          index=None, buffer_size=None, env_size=None,
-                         load_data_from_generators: bool=False,
+                         load_data_from_generators: bool=False, use_GPU: bool=False, 
                          load_data_from_disk: bool=False, use_wandb: bool=False,
-                         E=None, V=None, verbose=True, init_steps=100, **kwargs):
+                         E=None, V=None, verbose=True, init_steps=100, 
+                         use_notebook=None, **kwargs):
   """Main training loop for maximisation of RSMI [I(H:E)] 
   for coarse-graining optimisation.
 
@@ -78,7 +81,13 @@ def train_RSMI_optimiser(CG_params, critic_params, opt_params,
   optimizer -- choice for stochastic gradient descent optimiser (default None: Adam)
   use_GPU (bool) -- switch for using a GPU device (default False)
   verbose (bool) -- switch verbose output (default True)
+  use_notebook (bool) -- switch to Jupyter notebook version of tqdm (default None)
   """
+
+  if use_notebook:
+    from tqdm.notebook import tqdm
+  else:
+    from tqdm.autonotebook import tqdm
 
   # prepare the dataset using tf.data api
   if load_data_from_disk:
