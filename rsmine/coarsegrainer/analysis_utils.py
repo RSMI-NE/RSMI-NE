@@ -105,14 +105,14 @@ def load_filters_estimates_dict(data_dir, case_list, num_of_runs=None, run_list=
         return_item = {key: -2 for key in case_list}
     
     for case_no in case_list:
-        aux_filters_runs = np.zeros(shape=(num_of_runs,len(cGV_edges[case_no]),CG_params['num_hiddens']))
+        aux_filters_runs = np.zeros(shape=(num_of_runs,len(cGV_edges[case_no]),CG_params['hidden_dim']))
         aux_estimates_runs = np.zeros(shape=(num_of_runs,1))
         run_no=1 # while construction is better for variable size list (if files missing)
         extant_run_no = 1
         #while run_no <= num_of_runs:
         #    try:
-        #        aux_filters = np.load(data_dir + 'filters_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['num_hiddens'],disc,run_no))
-        #        aux_estimates = np.load(data_dir + 'estimates_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['num_hiddens'],disc,run_no))
+        #        aux_filters = np.load(data_dir + 'filters_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['hidden_dim'],disc,run_no))
+        #        aux_estimates = np.load(data_dir + 'estimates_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['hidden_dim'],disc,run_no))
         #        non_collapsed = non_collapsed_estimates(aux_estimates)
         #        aux_filters_runs[extant_run_no-1] = non_collapsed_data(aux_filters,non_collapsed,ignore_collapse=ignore_collapse,return_item = return_item[case_no])
         #        aux_estimates_runs[extant_run_no-1] = non_collapsed_estimates_ewm(aux_estimates,non_collapsed,ewm_span=100,ignore_collapse=ignore_collapse,return_item = return_item[case_no])
@@ -124,8 +124,8 @@ def load_filters_estimates_dict(data_dir, case_list, num_of_runs=None, run_list=
                 
         for run_no in run_list:
             try:
-                aux_filters = np.load(data_dir + 'filters_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['num_hiddens'],disc,run_no))
-                aux_estimates = np.load(data_dir + 'estimates_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['num_hiddens'],disc,run_no))
+                aux_filters = np.load(data_dir + 'filters_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['hidden_dim'],disc,run_no))
+                aux_estimates = np.load(data_dir + 'estimates_%i_vi%i_c%i_h%i_disc%i_run%i.npy'%(EV_params['sample_no'],EV_params['V_index'],case_no,CG_params['hidden_dim'],disc,run_no))
                 non_collapsed = non_collapsed_estimates(aux_estimates)
                 aux_filters_runs[extant_run_no-1] = non_collapsed_data(aux_filters,non_collapsed,ignore_collapse=ignore_collapse,return_item = return_item[case_no])
                 aux_estimates_runs[extant_run_no-1] = non_collapsed_estimates_ewm(aux_estimates,non_collapsed,ewm_span=100,ignore_collapse=ignore_collapse,return_item = return_item[case_no])
@@ -154,7 +154,7 @@ def single_filter_visualize(V_edgelist, filters, filter_no, hidden_no=0, edges=N
     V_edges = np.zeros(num_edges)
     V_edges[V_edgelist]=1
 
-    #filter_densities = np.zeros((num_edges,CG_params['num_hiddens']))
+    #filter_densities = np.zeros((num_edges,CG_params['hidden_dim']))
     filter_densities = np.zeros(num_edges)
     filter_densities[V_edgelist] = filters[filter_no][:,hidden_no]
     #filter_densities[V_edgelist] = filters[filter_no][:,:]
