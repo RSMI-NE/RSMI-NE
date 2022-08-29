@@ -57,7 +57,7 @@ def non_collapsed_estimates_ewm(est, non_collapsed,ewm_span=50, ignore_collapse 
             nonc_est = est[tuple(non_collapsed)]
             return pd.Series(nonc_est).ewm(span=ewm_span).mean().iloc[return_item]
 
-def load_Vs(samples, case_list, vind):
+def load_Vs(samples, case_list, vind, EV_dir = None):
     """
     Load the V samples corresponding to the selected seeds, vertex and case.
     samples -- list of sample file IDs (seeds)
@@ -72,7 +72,8 @@ def load_Vs(samples, case_list, vind):
         # Vs are organized in files per sample batch (seed). If using multiple sample batches, concatenate and reshape.
         Vs_list = []
         for sample_no in samples:
-            Vs_list.append(np.load(r"/home/cluster/mkochj/scratch/sobisw/data/EandV/Vs_%i_vi%i_c%i.npy" % (sample_no,vind,load_case)))
+            #Vs_list.append(np.load(r"/home/cluster/mkochj/scratch/sobisw/data/EandV/Vs_%i_vi%i_c%i.npy" % (sample_no,vind,load_case)))
+            Vs_list.append(np.load(EV_dir+"Vs_%i_vi%i_c%i.npy" % (sample_no,vind,load_case)))
         Vs_dict[load_case] =  np.reshape(Vs_list,newshape=(len(Vs_list)*Vs_list[0].shape[0],Vs_list[0].shape[1],1)) # REMEMBER about the additional axis for Vs !!!!!
         print("Case: %i, shape Vs: "%(load_case), Vs_dict[load_case].shape)
     return Vs_dict

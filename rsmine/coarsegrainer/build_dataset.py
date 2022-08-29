@@ -58,6 +58,26 @@ def RSMIdat_filename(model: str, lattice_type: str, L: int, T, buffer_size: int,
             +'_L%i_T%.3f_buffer%i.tfrecord'%(L, T, buffer_size)
 
     return os.path.join(os.pardir, "data", dir, name)
+    
+    
+def iter_loadtxt(filename, delimiter=' ', skiprows=0, dtype=float):
+    """
+    Iteratively, line by line, load data from txt file and put in np.array
+    Much more memory efficient than np.loadtxt (whose peak mem use may be many times the final size of array)
+    """
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split(delimiter)
+                for item in line:
+                    yield dtype(item)
+        iter_loadtxt.rowlength = len(line)
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, iter_loadtxt.rowlength))
+    return data
 
 
 def link_RSMIdat(data_params, type=tf.float32):
