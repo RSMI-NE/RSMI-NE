@@ -418,9 +418,7 @@ class dataset():
             else:
                 warnings.warn("Warning: the dataset with desired system parameters could not be found.")
 
-        self.configurations = self.configurations.reshape((self.N_configs, )
-                                                            + self.dimension*(self.L, )
-                                                            + (self.visible_dim, ))
+        #self.configurations = self.configurations.reshape((self.N_configs, ) + self.dimension*(self.L, ) + (self.visible_dim, ))
 
     def gen_Vs(self, indices: tuple, ll: tuple, shape=None):
         """Generator for for the visible block to be coarse-grained.
