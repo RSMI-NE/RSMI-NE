@@ -66,7 +66,7 @@ import rsmine.coarsegrainer.build_dataset as ds
 import rsmine.coarsegrainer.cg_optimisers as cg_opt
 ```
 
-Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/examples>.
+Jupyter notebooks demonstrating the basic usage in simple examples are provided in <https://github.com/RSMI-NE/RSMI-NE/tree/main/examples>.
 
 ## Citation
 
