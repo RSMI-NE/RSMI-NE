@@ -11,7 +11,7 @@ else:
 
 setup(
     name='rsmine',
-    version='0.0.3',
+    version='0.3.0-alpha1',
     packages=find_packages(include=['rsmine', 'rsmine.*']),
     author='Doruk Efe Gökmen, Maciej Koch-Janusz',
     author_email='dgoekmen@ethz.ch',
