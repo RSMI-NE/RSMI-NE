@@ -25,11 +25,7 @@ from wandb.keras import WandbCallback
 
 import rsmine.coarsegrainer.build_dataset as ds
 from rsmine.coarsegrainer.cg_layers import CoarseGrainer
-#abspath = os.path.abspath(__file__)
-#os.chdir(os.path.dirname(abspath))
-#sys.path.append(os.path.abspath(os.path.join(os.pardir,os.pardir,"mi_estimator","src")))
-#import VBMI_estimators 
-#from VBMI_bounds import lowerbounds
+
 #SeparableCritic = VBMI_estimators.SeparableCritic
 import rsmine.mi_estimator.VBMI_estimators as VBMI_estimators
 from rsmine.mi_estimator.VBMI_bounds import lowerbounds
@@ -87,7 +83,7 @@ def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict,
   if use_notebook:
     from tqdm.notebook import tqdm
   else:
-    from tqdm.autonotebook import tqdm
+    from tqdm import tqdm
 
   # prepare the dataset using tf.data api
   if load_data_from_disk:

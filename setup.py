@@ -1,12 +1,17 @@
+import sys
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+if sys.platform == 'darwin':
+    tf_package_name = 'tensorflow-macos'
+else:
+    tf_package_name = 'tensorflow'
 
 setup(
     name='rsmine',
-    version='0.0.2rc1',
+    version='0.0.3',
     packages=find_packages(include=['rsmine', 'rsmine.*']),
     author='Doruk Efe Gökmen, Maciej Koch-Janusz',
     author_email='dgoekmen@ethz.ch',
@@ -21,14 +26,16 @@ setup(
     license='Apache License 2.0',
     install_requires=['requests',
                       'numpy',
-                      'tensorflow',
+                      tf_package_name,
                       'tensorflow-probability',
                       'pandas',
                       'matplotlib',
                       'wandb',
                       'tqdm',
                       'networkx',
-                      'scipy'],
+                      'scipy',
+                      'seaborn',
+                      'scikit-learn'],
     python_requires='>=3.6',
     classifiers=[
         'Development Status :: 3 - Alpha',
