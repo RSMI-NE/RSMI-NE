@@ -19,7 +19,8 @@
 
 `rsmine` can be run on a standard personal computer. It has been tested on the following setup (without GPU):
 
-+ CPU: 2.3 GHz Quad-Core Intel Core i5, Memory: 8 GB 2133 MHz LPDDR3
++ Intel Core i5 CPU: 2.3 GHz 4-Core; Memory: 8 GB 2133 MHz LPDDR3
++ M1 Pro CPU: 3.2 GHz 10-Core; GPU: 16-Core; Memory: 32 GB LPDDR5
 
 ### Software requirements
 
