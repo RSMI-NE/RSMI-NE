@@ -32,6 +32,7 @@ def infonce_lower_bound(x, y, f_ansatz):
 
   return tfp.vi.mutual_information.lower_bound_info_nce(\
                 logu=scores, joint_sample_mask=positive_mask)
+                #can try logu=tf.clip_by_value(scores, -1e5, 10e5)
 
 
 def dv_upper_lower_bound(x, y, f_ansatz):

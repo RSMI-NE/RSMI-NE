@@ -201,7 +201,8 @@ def train_RSMI_optimiser(CG_params: dict, critic_params: dict, opt_params: dict,
       elif CG.method == 'STE quantisation':
           pbar.set_description(f'STE quantisation, I={mi:.2f}')
       else:
-          pbar.set_description(f'Convolution, I={mi:.2f}')
+          pbar.set_description(f"{CG_params['conv_activation']}, I={mi:.2f}")
+          #TODO: change `conv_activation` to `CG_activation`.
 
       pbar.update(1) # update progress bar for each iteration step
 

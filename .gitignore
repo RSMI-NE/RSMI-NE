@@ -8,6 +8,7 @@ dist
 tensorflow_macos_venv
 bin
 data
+run
 
 rsmine/coarsegrainer/runs/*
 rsmine/coarsegrainer/src/wandb/*
