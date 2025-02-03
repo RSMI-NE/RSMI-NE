@@ -1,69 +1,193 @@
-import numpy as np
-import tensorflow as tf
-tfkl = tf.keras.layers
+# Authors: Doruk Efe Gökmen
+# Date: 03/02/2025
 
-class MultiDense(tf.keras.layers.Layer):
+import torch
+import torch.nn as nn
+import numpy as np
+
+
+class MultiDense(nn.Module):
     """
     Fully connected (or dense) layer that accepts an input
     tensor of general shape.
 
-    As an example, consider a system of L n-component spins.
-    This layer is a map R^L \times R^n \to R^dH,
-    where dH is the hidden dimension.
+    Args:
+        hidden_dim (int): dimensionality of output tensor
 
-    Keyword argument:
-    hidden_dim (int) -- dimensionality (dH) of output tensor
+    Attributes:
+        kernel (torch.nn.Parameter): weights of the layer
+        bias (torch.nn.Parameter): bias of the layer
+
     """
 
     def __init__(self, hidden_dim: int):
         super(MultiDense, self).__init__()
         self.hidden_dim = hidden_dim
+        self.kernel = None
+        self.bias = None
 
-    def build(self, input_shape):
-        rank = len(input_shape)
-        self.axes = [list(range(1, rank)), list(range(0, rank - 1))]
-        self.kernel = self.add_weight(
-            "kernel", shape=input_shape[1::] + (self.hidden_dim,))
-        self.bias = self.add_weight("bias", shape=(self.hidden_dim,))
+    def forward(self, x):
+        if self.kernel is None:
+            input_shape = x.shape
+            rank = len(input_shape)
+            kernel_shape = list(input_shape[1:]) + [self.hidden_dim]
+            self.kernel = nn.Parameter(torch.randn(*kernel_shape))
+            self.bias = nn.Parameter(torch.zeros(self.hidden_dim))
 
-    def call(self, x):
-        return tf.tensordot(x, self.kernel, self.axes) + self.bias
+        dims_x = list(range(1, len(x.shape)))  # all input dims except for the batch dim
+        dims_kernel = list(
+            range(len(self.kernel.shape) - 1)
+        )  # all kernel dims except for the hidden dim
+        out = torch.tensordot(x, self.kernel, dims=(dims_x, dims_kernel))
+        return out + self.bias
 
 
-def array2tensor(z: np.ndarray, dtype=tf.float32):
-    """Converts numpy arrays into tensorflow tensors.
+def mlp(
+    hidden_dim: int,
+    output_dim: int,
+    layers: int,
+    activation,
+    use_dropout: bool = False,
+    dropout_rate: float = 0.2,
+):
+    """Constructs a multi-layer perceptron (MLP) with given number of hidden layers.
 
-    Keyword arguments:
-    z -- numpy array
-    dtype -- data type of tensor entries (default float32)
+    Args:
+        hidden_dim (int): dimension of hidden dense layers
+        output_dim (int): dimension of the output tensor
+        layers (int): number of hidden dense layers
+        activation (torch.nn.Module): activation function of the neurons
+        use_dropout (bool, optional): dropout after hidden layers Defaults to False.
+        dropout_rate (float, optional): Defaults to 0.2.
+
+    Returns:
+       The MLP network (torch.nn.Sequential)
     """
-    if len(np.shape(z)) == 1:  # special case where input is a vector
-        return tf.cast(np.reshape(z, (np.shape(z)[0], 1)), dtype)
-    else:
-        return tf.cast(z, dtype)
+    modules = []
+    for _ in range(layers):
+        modules.append(nn.Linear(hidden_dim if modules else hidden_dim, hidden_dim))
+        modules.append(activation)
+        if use_dropout:
+            modules.append(nn.Dropout(dropout_rate))
+    modules.append(nn.Linear(hidden_dim if layers > 0 else hidden_dim, output_dim))
+    return nn.Sequential(*modules)
 
 
-def reduce_logmeanexp_offdiag(x, axis=None):
-    """Contracts the tensor x on its off-diagonal elements and takes the logarithm.
+def multi_mlp(
+    hidden_dim: int,
+    output_dim: int,
+    layers: int,
+    activation=torch.nn.ReLU,
+    input_shape=None,
+    use_dropout: bool = False,
+    dropout_rate: float = 0.2,
+):
+    """Constructs an extended multi-layer perceptron (MLP) critic
+    with given number of hidden layers with tensor inputs.
 
-    Keyword arguments:
-    x -- tensorflow tensor
-    axis (int) -- contraction axis (default None)
-    if axis=None, does full contraction 
+    Args:
+        hidden_dim (int): dimension of hidden dense layers
+        output_dim (int): dimension of the output tensor
+        layers (int): number of hidden dense layers
+        activation (torch.nn.Module): activation function of the neurons
+        input_shape (tuple, optional): shape of the input tensor. Defaults to None.
+        use_dropout (bool, optional): add dropout after hidden layers. Defaults to False.
+        dropout_rate (float, optional): Defaults to 0.2.
 
-    :Authors:
-      Ben Poole
-      Copyright 2019 Google LLC.
+    Returns:
+        The multi-MLP network (torch.nn.Sequential)
     """
 
-    num_samples = x.shape[0].value
-    if axis:
-        log_num_elem = tf.math.log(num_samples - 1)
+    model_seq = []
+
+    if input_shape is not None:
+        model_seq.append(MultiDense(hidden_dim))
+        if activation is not None:
+            model_seq.append(activation())
+        layers -= 1
+
+    if use_dropout:
+        for _ in range(layers):
+            model_seq.append(nn.Linear(hidden_dim, hidden_dim))
+            if activation is not None:
+                model_seq.append(activation())
+            model_seq.append(nn.Dropout(dropout_rate))
     else:
-        log_num_elem = tf.math.log(num_samples * (num_samples - 1))
-    return tf.reduce_logsumexp(x -
-                               tf.linalg.tensor_diag(np.inf * tf.ones(num_samples)), axis=axis)\
-        - log_num_elem
+        for _ in range(layers):
+            model_seq.append(nn.Linear(hidden_dim, hidden_dim))
+            if activation is not None:
+                model_seq.append(activation())
+
+    model_seq.append(nn.Linear(hidden_dim, output_dim))
+    return nn.Sequential(*model_seq)
+
+
+def logmeanexp_offdiag(x, axis=None):
+    """
+    Contracts the tensor x on its off-diagonal elements and takes the logarithm.
+
+    Args:
+        x (torch.Tensor): input tensor
+        axis (int, optional): axis to contract the tensor (default None)
+            Note: if None, the tensor is contracted on all axes.
+
+    Based on code by Ben Poole. Copyright 2019 Google LLC.
+    """
+
+    num_samples = x.size(0)
+    if axis is not None:
+        log_num_elem = torch.log(
+            torch.tensor(num_samples - 1, dtype=x.dtype, device=x.device)
+        )
+    else:
+        log_num_elem = torch.log(
+            torch.tensor(
+                num_samples * (num_samples - 1), dtype=x.dtype, device=x.device
+            )
+        )
+
+    inf_diag = torch.full((num_samples,), float("inf"), dtype=x.dtype, device=x.device)
+    x_no_diag = x - torch.diag(inf_diag)
+
+    if axis is None:
+        return torch.logsumexp(x_no_diag, dim=(0, 1)) - log_num_elem
+    else:
+        return torch.logsumexp(x_no_diag, dim=axis) - log_num_elem
+
+
+def logmeanexp_masked(x, mask, axis=None):
+    """_summary_
+
+    Args:
+        x (_type_): _description_
+        mask (_type_): _description_
+        axis (_type_, optional): _description_. Defaults to None.
+    """
+
+    mask_tensor = torch.tensor(mask, dtype=torch.bool, device=x.device)
+
+    masked_input = torch.where(
+        mask, x, torch.tensor(-np.inf, dtype=x.dtype, device=x.device)
+    )
+
+    log_n = torch.log(torch.sum(mask_tensor.to(masked_input.dtype), dim=axis))
+    
+    return torch.logsumexp(masked_input, dim=axis) - log_n
+
+
+def array2tensor(z, dtype=torch.float32):
+    """Converts numpy arrays into torch tensors.
+
+    Args:
+        z (numpy array): input numpy array
+        dtype (torch.dtype): data type of tensor entries (default float32)
+
+    Returns:
+        torch.Tensor: converted tensor
+    """
+    if z.ndim == 1:  # special case where input is a vector
+        z = z.reshape(z.shape[0], 1)
+    return torch.tensor(z, dtype=dtype)
 
 
 def const_fn(x, const=1.0):
@@ -74,83 +198,3 @@ def const_fn(x, const=1.0):
     const (float) -- constant value of the image
     """
     return const
-
-
-def multi_mlp(hidden_dim: int, output_dim: int,
-    layers: int, activation, input_shape=None,
-	use_dropout: bool = False, dropout_rate: float = 0.2):
-    """Constructs an extended multi-layer perceptron (MLP) critic 
-    with given number of hidden layers with tensor inputs.
-
-    Keyword arguments:
-    hidden_dim (int) -- dimensionality of hidden dense layers
-    output_dim (int) -- dimensionality of the output tensor
-    layers (int) -- number of hidden dense layers
-    activation -- activation function of the neurons
-    input_shape (tuple of int) -- shape of the input tensor
-    use_dropout (bool) -- add dropout after hidden layers
-    dropout_rate (float)
-
-    As an example, given a chain of L n-component spins,
-    the overall map is R^L \times R^n \to R.
-
-    Returns:
-    The MLP network (tf.keras.Model)
-    """
-
-    model_seq = []
-
-    if input_shape is not None:
-        input = tfkl.Input(shape=input_shape)  #  TODO: do we need this?
-        model_seq += [tf.keras.models.Model(input,
-                                            MultiDense(hidden_dim)(input))]
-        model_seq += [tfkl.Activation(activation)]
-        layers -= 1
-
-    #hidden_dense_layer = tfkl.Dense(hidden_dim, activation=activation)
-    #dropout_layer = tfkl.Dropout(dropout_rate)
-    visible_dense_layer = tfkl.Dense(output_dim)
-
-    if use_dropout:
-        model_seq += [layer for _ in range(layers)
-                      for layer in [tfkl.Dense(hidden_dim, activation=activation), 
-					  				tfkl.Dropout(dropout_rate)]]
-        model_seq += [visible_dense_layer]
-
-    else:
-        model_seq += [tfkl.Dense(hidden_dim, activation=activation) for _ in range(layers)]
-        model_seq += [visible_dense_layer]
-
-    return tf.keras.Sequential(model_seq)
-
-
-
-def mlp(hidden_dim: int, output_dim: int, layers: int, activation,
-    use_dropout: bool = False, dropout_rate: float = 0.2):
-    """Constructs multi-layer perceptron (MLP) critic 
-    with given number of hidden layers.
-
-    Keyword arguments:
-    hidden_dim (int) -- dimensionality of hidden dense layers
-    output_dim (int) -- dimensionality of the output tensor
-    layers (int) -- number of hidden dense layers
-    activation -- activation function of the neurons
-    use_dropout (bool) -- add dropout after hidden layers
-    dropout_rate (float)
-
-    Returns:
-    The MLP network (tf.keras.Model)
-    """
-
-    #hidden_dense_layer = tfkl.Dense(hidden_dim, activation)
-    #dropout_layer = tfkl.Dropout(dropout_rate)
-    visible_dense_layer = tfkl.Dense(output_dim)
-
-    if use_dropout:
-        return tf.keras.Sequential(
-            [layer for _ in range(layers)
-             for layer in [tfkl.Dense(hidden_dim, activation), tfkl.Dropout(dropout_rate)]]
-            + [visible_dense_layer])
-    else:
-        return tf.keras.Sequential(
-            [tfkl.Dense(hidden_dim, activation) for _ in range(layers)] + [visible_dense_layer])
