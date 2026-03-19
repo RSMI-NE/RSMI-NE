@@ -41,13 +41,15 @@ class Conv2DSingle(tfkl.Layer):
     super(Conv2DSingle, self).__init__()
 
     if isinstance(init_rule, np.ndarray):
-      init = init_rule
+      initializer = tf.constant_initializer(init_rule)
     else:
-      w_init = tf.random_normal_initializer()
-      init = w_init(shape=input_shape + (visible_dim,)
-                    + (hidden_dim,), dtype='float32')
+      initializer = tf.random_normal_initializer()
 
-    self.ws = tf.Variable(initial_value=init, trainable=True)
+    self.ws = self.add_weight(
+        name="ws",
+        shape=input_shape + (visible_dim,) + (hidden_dim,),
+        initializer=initializer,
+        trainable=True)
 
   def call(self, inputs):
     """Computes the dot product between the input and kernel weights.
@@ -90,15 +92,17 @@ class Conv3DSingle(tfkl.Layer):
     """
 
     super(Conv3DSingle, self).__init__()
-    
+
     if isinstance(init_rule, np.ndarray):
-      init = init_rule
-    
+      initializer = tf.constant_initializer(init_rule)
     else:
-        w_init = tf.random_normal_initializer()
-        init = w_init(shape=input_shape+(hidden_dim,), dtype='float32')
-        
-    self.ws = tf.Variable(initial_value=init, trainable=True)
+      initializer = tf.random_normal_initializer()
+
+    self.ws = self.add_weight(
+        name="ws",
+        shape=input_shape + (hidden_dim,),
+        initializer=initializer,
+        trainable=True)
 
   def call(self, inputs):
     """Computes the dot product between the input and kernel weights.
@@ -132,12 +136,15 @@ class ConvGraphSingle(tfkl.Layer):
     super(ConvGraphSingle, self).__init__()
 
     if isinstance(init_rule, np.ndarray):
-      init = init_rule
+      initializer = tf.constant_initializer(init_rule)
     else:
-      w_init = tf.random_normal_initializer()
-      init = w_init(shape=input_shape+(hidden_dim,), dtype='float32')
-      
-    self.ws = tf.Variable(initial_value=init, trainable=True)
+      initializer = tf.random_normal_initializer()
+
+    self.ws = self.add_weight(
+        name="ws",
+        shape=input_shape + (hidden_dim,),
+        initializer=initializer,
+        trainable=True)
 
   def call(self, inputs):
     """Computes the dot product between the input and kernel weights.

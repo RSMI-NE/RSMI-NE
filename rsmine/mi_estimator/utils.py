@@ -23,8 +23,8 @@ class MultiDense(tf.keras.layers.Layer):
         rank = len(input_shape)
         self.axes = [list(range(1, rank)), list(range(0, rank - 1))]
         self.kernel = self.add_weight(
-            "kernel", shape=input_shape[1::] + (self.hidden_dim,))
-        self.bias = self.add_weight("bias", shape=(self.hidden_dim,))
+            name="kernel", shape=input_shape[1::] + (self.hidden_dim,))
+        self.bias = self.add_weight(name="bias", shape=(self.hidden_dim,))
 
     def call(self, x):
         return tf.tensordot(x, self.kernel, self.axes) + self.bias
@@ -56,7 +56,7 @@ def reduce_logmeanexp_offdiag(x, axis=None):
       Copyright 2019 Google LLC.
     """
 
-    num_samples = x.shape[0].value
+    num_samples = x.shape[0]
     if axis:
         log_num_elem = tf.math.log(num_samples - 1)
     else:

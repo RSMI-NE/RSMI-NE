@@ -21,7 +21,10 @@ import tensorflow as tf
 tfkl = tf.keras.layers
 
 import wandb
-from wandb.keras import WandbCallback
+try:
+    from wandb.integration.keras import WandbCallback
+except ImportError:
+    from wandb.keras import WandbCallback
 
 import rsmine.coarsegrainer.build_dataset as ds
 from rsmine.coarsegrainer.cg_layers import CoarseGrainer

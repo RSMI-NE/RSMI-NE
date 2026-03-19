@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 
-`rsmine` is a Python package, implemented using Tensorflow, for optimising coarse-graining rules for real-space renormalisation group by maximising real-space mutual information. This work results from the Horizon 2020 [COMPLEX ML](https://complexml.github.io/complexml/) project.
+`rsmine` is a Python package, implemented using Tensorflow, for optimising coarse-graining rules for real-space renormalisation group by maximising real-space mutual information.
 
 - [Overview](#overview)
 - [System requirements](#system-requirements)

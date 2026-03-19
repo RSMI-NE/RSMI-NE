@@ -31,7 +31,10 @@ from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector,\
     BboxConnectorPatch
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
+try:
+    from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
+except ImportError:
+    InsetPosition = None
 from matplotlib.transforms import blended_transform_factory, TransformedBbox
 from mpl_toolkits.axes_grid1.inset_locator import BboxPatch, BboxConnector
 
